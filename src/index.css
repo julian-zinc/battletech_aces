@@ -47,15 +47,67 @@ header {
   align-items: center;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .logo {
   font-size: 1.5rem;
   font-weight: 800;
   background: linear-gradient(to right, var(--primary), var(--accent));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* Phase Controls */
+.phase-controls {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.35rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.phase-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.phase-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.phase-btn.active {
+  background: var(--primary);
+  color: #000;
+}
+
+.phase-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .add-mech-form {
@@ -79,61 +131,37 @@ select option {
   color: white;
 }
 
-input:focus, select:focus {
-  border-color: var(--primary);
-  background: #1e293b;
-}
-
-button {
-  background: var(--primary);
-  color: #000;
-  border: none;
-  padding: 0.5rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-button:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
 /* Main Content */
 main {
   flex: 1;
   padding: 2rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
-  align-items: start;
 }
 
-.mech-container {
+.mechs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.mechs-grid.iniciativa, .mechs-grid.iniciativa-combate {
+  grid-template-columns: 1fr;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.mech-card-view {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  transition: all 0.3s;
 }
 
 .mech-header {
@@ -143,72 +171,256 @@ main {
 }
 
 .mech-info h2 {
-  font-size: 1.25rem;
-  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
 }
 
 .mech-type {
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+}
+
+.mech-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .remove-btn {
   background: transparent;
   color: var(--text-muted);
-  padding: 0.25rem;
+  padding: 4px;
 }
 
 .remove-btn:hover {
   color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
 }
 
-.card-display {
-  aspect-ratio: 2.5/3.5;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed var(--glass-border);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-
+/* Card Displays & Cropping */
 .card-image {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
-  animation: cardFlip 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
 }
 
-@keyframes cardFlip {
-  from { transform: rotateY(90deg); opacity: 0; }
-  to { transform: rotateY(0deg); opacity: 1; }
+.card-display-mantenimiento {
+  aspect-ratio: 2.5/3.5;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
 }
 
-.draw-section {
+.card-display-iniciativa {
+  aspect-ratio: 2.5/0.35; /* 10% of 3.5 height */
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.card-display-iniciativa-combate {
+  aspect-ratio: 2.5/0.35; /* 10% slice */
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.card-display-iniciativa-combate img {
+  width: 100%;
+  transform: translateY(-50%); /* Starts at 50% height */
+}
+
+/* Sidebar crops in movement/combat */
+.card-display-sidebar {
+  aspect-ratio: 2.5/0.35;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.card-display-sidebar.movimiento img {
+  width: 100%;
+}
+
+.card-display-sidebar.combate img {
+  width: 100%;
+  transform: translateY(-50%);
+}
+
+.no-card {
+  color: var(--text-muted);
+  padding: 2rem;
+  text-align: center;
+  background: rgba(0,0,0,0.1);
+  border-radius: 8px;
+}
+
+/* Reorder Buttons */
+.reorder-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reorder-btns button {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: var(--text-muted);
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reorder-btns button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--primary);
+}
+
+/* Movement Phase Layout */
+.movement-phase {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.movement-sidebar {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  position: sticky;
+  top: 100px;
 }
 
-.secondary-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+.sidebar-item {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.sidebar-item.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+  transform: scale(1.02);
+}
+
+.sidebar-item.completed {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+}
+
+.sidebar-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.sidebar-type {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.card-display-sidebar {
+  aspect-ratio: 2.5/0.35;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.card-display-sidebar img {
   width: 100%;
+}
+
+.movement-main {
+  display: flex;
   justify-content: center;
 }
 
-.secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+.active-mech-display {
+  background: var(--bg-card);
+  border: 2px solid var(--primary);
+  border-radius: 20px;
+  padding: 2.5rem;
+  max-width: 650px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: 0 0 40px rgba(0,0,0,0.4);
+}
+
+.card-display-principal {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  aspect-ratio: 2.5/1.75; /* 50% height */
+}
+
+.card-display-principal.movimiento img {
+  width: 100%;
+}
+
+.card-display-principal.combate img {
+  width: 100%;
+  transform: translateY(-50%); /* Show bottom half */
+}
+
+.movement-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.mech-counter {
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 1.4rem;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: #000;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.primary-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.primary-btn.phase-transition {
+  background: linear-gradient(135deg, var(--primary), #ef4444);
+  color: white;
+  padding: 0.75rem 2rem;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.secondary-btn {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+}
+
+.secondary-btn:disabled {
+  opacity: 0.3;
 }
 
 .empty-state {
-  grid-column: 1 / -1;
   text-align: center;
-  padding: 4rem;
+  padding: 5rem;
   color: var(--text-muted);
 }
