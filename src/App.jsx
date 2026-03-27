@@ -10,9 +10,9 @@ const MECH_TYPES = [
   "Skirmisher (JMPS)",
   "Striker",
   "Striker (Hover)",
-  "juggernaut",
-  "missile boat",
-  "sniper"
+  "Juggernaut",
+  "Missile Boat",
+  "Sniper"
 ];
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
   const addMech = (e) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    
+
     setMechs([...mechs, {
       id: Date.now(),
       name: newName,
@@ -57,9 +57,9 @@ function App() {
           BATTLETECH ACES
         </div>
         <form className="add-mech-form" onSubmit={addMech}>
-          <input 
-            type="text" 
-            placeholder="Nombre del Mech..." 
+          <input
+            type="text"
+            placeholder="Nombre del Mech..."
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
           />
@@ -88,8 +88,8 @@ function App() {
                   <div className="mech-type">{mech.type}</div>
                   <h2>{mech.name}</h2>
                 </div>
-                <button 
-                  className="remove-btn" 
+                <button
+                  className="remove-btn"
                   onClick={() => removeMech(mech.id)}
                   title="Eliminar Mech"
                 >
@@ -100,11 +100,11 @@ function App() {
               <div className="draw-section">
                 <div className="card-display">
                   {mech.currentCard ? (
-                    <img 
+                    <img
                       key={mech.currentCard}
-                      src={mech.currentCard} 
-                      alt="Mech Card" 
-                      className="card-image" 
+                      src={mech.currentCard}
+                      alt="Mech Card"
+                      className="card-image"
                     />
                   ) : (
                     <div style={{ color: 'var(--text-muted)' }}>Ninguna carta robada</div>
