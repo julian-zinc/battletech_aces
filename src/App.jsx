@@ -21,6 +21,8 @@ function App() {
   const [newType, setNewType] = useState(MECH_TYPES[0]);
   const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, iniciativa-combate, combate
   const [activeMechIndex, setActiveMechIndex] = useState(0);
+  const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
+  const [commanderCard, setCommanderCard] = useState("A");
 
   const addMech = (e) => {
     e.preventDefault();
@@ -51,6 +53,8 @@ function App() {
 
   const startIniciativa = () => {
     drawAllCards();
+    const letters = ["A", "B", "C", "D", "E"];
+    setCommanderCard(letters[Math.floor(Math.random() * letters.length)]);
     setCurrentPhase('iniciativa');
   };
 
@@ -67,6 +71,8 @@ function App() {
 
   const startIniciativaCombate = () => {
     drawAllCards();
+    const letters = ["A", "B", "C", "D", "E"];
+    setCommanderCard(letters[Math.floor(Math.random() * letters.length)]);
     setCurrentPhase('iniciativa-combate');
   };
 
@@ -136,7 +142,21 @@ function App() {
 
         <div className="header-right">
           {currentPhase === 'mantenimiento' && (
-            <form className="add-mech-form" onSubmit={addMech}>
+            <>
+              <div className="commander-setup">
+                <User size={18} />
+                <select value={selectedCommander} onChange={(e) => setSelectedCommander(e.target.value)}>
+                  <option value="Mechwarrior Clan Jade Falcon">Mechwarrior Clan Jade Falcon</option>
+                  <option value="StarCaptain Clan Jade Falcon">StarCaptain Clan Jade Falcon</option>
+                </select>
+                <select value={commanderCard} onChange={(e) => setCommanderCard(e.target.value)}>
+                  {["A", "B", "C", "D", "E"].map(letter => (
+                    <option key={letter} value={letter}>Carta {letter}</option>
+                  ))}
+                </select>
+              </div>
+
+              <form className="add-mech-form" onSubmit={addMech}>
               <input
                 type="text"
                 placeholder="Nombre del Mech..."
@@ -153,7 +173,7 @@ function App() {
                 Añadir
               </button>
             </form>
-          )}
+          </>)}
         </div>
       </header>
 
@@ -273,6 +293,19 @@ function App() {
             )}
           </div>
         )}
+
+        <div className="commander-sidebar">
+          <div className="commander-persistent-card">
+            <h3>COMANDANTE</h3>
+            <div className="full-card">
+              <img 
+                src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/assets/Commander/${selectedCommander}/${selectedCommander} ${commanderCard}.png`} 
+                alt="Commander Card" 
+              />
+            </div>
+            <div className="commander-name">{selectedCommander}</div>
+          </div>
+        </div>
       </main>
     </div>
   );
