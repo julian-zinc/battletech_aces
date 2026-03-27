@@ -41,8 +41,9 @@ function App() {
     setMechs(mechs.map(m => {
       if (m.id === id) {
         const randomNum = Math.floor(Math.random() * 6) + 1;
-        // The path should be relative to public
-        const cardPath = `/assets/${m.type}/${randomNum}.png`;
+        // The path should be relative to base URL
+        const base = import.meta.env.BASE_URL.replace(/\/$/, ""); // Remove trailing slash if any
+        const cardPath = `${base}/assets/${m.type}/${randomNum}.png`;
         return { ...m, currentCard: cardPath };
       }
       return m;
