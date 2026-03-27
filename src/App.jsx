@@ -23,6 +23,7 @@ function App() {
   const [activeMechIndex, setActiveMechIndex] = useState(0);
   const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
   const [commanderCard, setCommanderCard] = useState("A");
+  const [draggedIndex, setDraggedIndex] = useState(null);
 
   const addMech = (e) => {
     e.preventDefault();
@@ -43,7 +44,14 @@ function App() {
 
   const drawAllCards = () => {
     const updatedMechs = mechs.map(m => {
-      const randomNum = Math.floor(Math.random() * 6) + 1;
+      let randomNum;
+      const lastNumMatch = m.currentCard?.match(/\/(\d+)\.png$/);
+      const lastNum = lastNumMatch ? parseInt(lastNumMatch[1]) : null;
+
+      do {
+        randomNum = Math.floor(Math.random() * 6) + 1;
+      } while (randomNum === lastNum && mechs.length > 0); // mechs.length > 0 is just safe check
+
       const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       const cardPath = `${base}/assets/${m.type}/${randomNum}.png`;
       return { ...m, currentCard: cardPath };
@@ -54,7 +62,13 @@ function App() {
   const startIniciativa = () => {
     drawAllCards();
     const letters = ["A", "B", "C", "D", "E"];
-    setCommanderCard(letters[Math.floor(Math.random() * letters.length)]);
+    let newLetter;
+    
+    do {
+      newLetter = letters[Math.floor(Math.random() * letters.length)];
+    } while (newLetter === commanderCard);
+
+    setCommanderCard(newLetter);
     setCurrentPhase('iniciativa');
   };
 
@@ -70,9 +84,6 @@ function App() {
   };
 
   const startIniciativaCombate = () => {
-    drawAllCards();
-    const letters = ["A", "B", "C", "D", "E"];
-    setCommanderCard(letters[Math.floor(Math.random() * letters.length)]);
     setCurrentPhase('iniciativa-combate');
   };
 
@@ -89,6 +100,31 @@ function App() {
       [newMechs[index], newMechs[targetIndex]] = [newMechs[targetIndex], newMechs[index]];
       setMechs(newMechs);
     }
+  };
+
+  const onDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const onDragOver = (e, index) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    // Simple swap during drag for feedback or just wait for drop
+    // We'll wait for drop for simplicity as per user request to "reorder by dragging"
+  };
+
+  const onDrop = (e, index) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newMechs = [...mechs];
+    const item = newMechs.splice(draggedIndex, 1)[0];
+    newMechs.splice(index, 0, item);
+    
+    setMechs(newMechs);
+    setDraggedIndex(null);
   };
 
   return (
@@ -247,12 +283,32 @@ function App() {
             ) : (
               <div className={`mechs-grid ${currentPhase}`}>
                 {mechs.map((mech, index) => (
-                  <div key={mech.id} className={`mech-card-view ${currentPhase}`}>
+                  <div 
+                    key={mech.id} 
+                    className={`mech-card-view ${currentPhase}`}
+                    draggable={currentPhase === 'iniciativa' || currentPhase === 'iniciativa-combate'}
+                    onDragStart={(e) => onDragStart(e, index)}
+                    onDragOver={(e) => onDragOver(e, index)}
+                    onDrop={(e) => onDrop(e, index)}
+                  >
                     <div className="mech-header">
+                      <div className={`card-display-${currentPhase}`}>
+                        {mech.currentCard ? (
+                          <img
+                            src={mech.currentCard}
+                            alt="Mech Card"
+                            className="card-image"
+                          />
+                        ) : (
+                          <div className="no-card">Sin carta</div>
+                        )}
+                      </div>
+                      
                       <div className="mech-info">
                         <h2>{mech.name}</h2>
                         <span className="mech-type">{mech.type}</span>
                       </div>
+
                       <div className="mech-actions">
                         {(currentPhase === 'iniciativa' || currentPhase === 'iniciativa-combate') && (
                           <div className="reorder-btns">
@@ -274,18 +330,6 @@ function App() {
                           </button>
                         )}
                       </div>
-                    </div>
-
-                    <div className={`card-display-${currentPhase}`}>
-                      {mech.currentCard ? (
-                        <img
-                          src={mech.currentCard}
-                          alt="Mech Card"
-                          className="card-image"
-                        />
-                      ) : (
-                        <div className="no-card">Ninguna carta robada</div>
-                      )}
                     </div>
                   </div>
                 ))}
