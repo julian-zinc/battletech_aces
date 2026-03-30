@@ -61,14 +61,6 @@ function App() {
 
   const startIniciativa = () => {
     drawAllCards();
-    const letters = ["A", "B", "C", "D", "E"];
-    let newLetter;
-    
-    do {
-      newLetter = letters[Math.floor(Math.random() * letters.length)];
-    } while (newLetter === commanderCard);
-
-    setCommanderCard(newLetter);
     setCurrentPhase('iniciativa');
   };
 
