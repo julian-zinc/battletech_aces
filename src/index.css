@@ -329,6 +329,110 @@ main {
   align-items: start;
 }
 
+/* Phase specifics for global main grid */
+.phase-movimiento main,
+.phase-combate main {
+  grid-template-columns: 350px 1fr 560px;
+  grid-template-areas: "sidebar mech commander";
+  gap: 2rem;
+}
+
+.phase-movimiento .content-area,
+.phase-movimiento .movement-phase,
+.phase-combate .content-area,
+.phase-combate .movement-phase {
+  display: contents;
+}
+
+.phase-movimiento .movement-sidebar,
+.phase-combate .movement-sidebar {
+  grid-area: sidebar;
+}
+
+.phase-movimiento .movement-main,
+.phase-combate .movement-main {
+  grid-area: mech;
+}
+
+.phase-movimiento .commander-sidebar,
+.phase-combate .commander-sidebar {
+  grid-area: commander;
+}
+
+/* Response Breakpoints */
+
+/* Intermediate: List on top, Mech and Commander side-by-side */
+@media (max-width: 1600px) {
+  .phase-movimiento main,
+  .phase-combate main {
+    grid-template-columns: 1fr 560px;
+    grid-template-areas: 
+      "sidebar sidebar"
+      "mech commander";
+  }
+
+  .phase-movimiento .movement-sidebar,
+  .phase-combate .movement-sidebar {
+    max-width: 350px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    top: 0;
+  }
+
+  .commander-sidebar {
+    position: relative;
+    top: 0;
+  }
+}
+
+/* Narrow: Vertical stack */
+@media (max-width: 1100px) {
+  .phase-movimiento main,
+  .phase-combate main {
+    grid-template-columns: 1fr;
+    grid-template-areas: 
+      "sidebar"
+      "mech"
+      "commander";
+  }
+
+  .commander-sidebar {
+    position: relative;
+    top: 0;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .phase-movimiento .movement-sidebar,
+  .phase-combate .movement-sidebar {
+    position: relative;
+    top: 0;
+    max-width: 350px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+/* Initiative and Initiative Combat responsive stacking */
+/* Space needed: 600px list + 560px commander + 2rem gap = ~1192px + 4rem main padding = ~1256px */
+@media (max-width: 1260px) {
+  .phase-iniciativa main,
+  .phase-iniciativa-combate main {
+    grid-template-columns: 1fr;
+  }
+
+  .phase-iniciativa .commander-sidebar,
+  .phase-iniciativa-combate .commander-sidebar {
+    position: relative;
+    top: 0;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+}
+
 .movement-sidebar {
   display: flex;
   flex-direction: column;
