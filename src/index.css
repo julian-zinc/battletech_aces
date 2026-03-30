@@ -45,18 +45,22 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 2rem;
+  flex-wrap: wrap;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .logo {
@@ -79,6 +83,7 @@ header {
   padding: 0.35rem;
   border-radius: 12px;
   border: 1px solid var(--glass-border);
+  flex-wrap: wrap;
 }
 
 .phase-btn {
@@ -114,6 +119,27 @@ header {
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.add-mech-form button {
+  background: var(--primary);
+  color: #000;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+}
+
+.add-mech-form button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
 }
 
 .commander-setup {
@@ -430,6 +456,30 @@ main {
     width: 100%;
     max-width: 560px;
     margin: 0 auto;
+  }
+}
+
+/* Maintenance responsive stacking */
+/* Disabling sticky for commander in maintenance as per user request */
+.phase-mantenimiento .commander-sidebar {
+  position: relative;
+  top: 0;
+}
+
+@media (max-width: 1200px) {
+  .phase-mantenimiento main {
+    grid-template-columns: 1fr;
+  }
+
+  .phase-mantenimiento .commander-sidebar {
+    grid-row: 1;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .phase-mantenimiento .content-area {
+    grid-row: 2;
   }
 }
 
