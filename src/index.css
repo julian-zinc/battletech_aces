@@ -233,13 +233,19 @@ main {
   cursor: grab;
 }
 
+.mech-card-view.mantenimiento {
+  padding: 1rem 1.25rem;
+}
+
 .mech-card-view.iniciativa:active, .mech-card-view.iniciativa-combate:active {
   cursor: grabbing;
   border-color: var(--primary);
   transform: scale(0.98);
 }
 
-.mech-card-view.iniciativa .mech-header, .mech-card-view.iniciativa-combate .mech-header {
+.mech-card-view.mantenimiento .mech-header,
+.mech-card-view.iniciativa .mech-header, 
+.mech-card-view.iniciativa-combate .mech-header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -285,10 +291,13 @@ main {
 }
 
 .card-display-mantenimiento {
-  aspect-ratio: 2.5/3.5;
+  width: 80px;
+  min-width: 80px;
+  height: 80px;
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid var(--glass-border);
+  flex-shrink: 0;
 }
 
 .card-display-iniciativa {
