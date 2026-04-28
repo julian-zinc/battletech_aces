@@ -12,9 +12,9 @@ const MECH_TYPES = [
   "Skirmisher (JMPS)",
   "Striker",
   "Striker (Hover)",
-  "juggernaut",
-  "missile boat",
-  "sniper"
+  "Juggernaut",
+  "Missile boat",
+  "Sniper"
 ];
 
 function App() {
