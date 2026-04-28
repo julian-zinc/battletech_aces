@@ -22,11 +22,31 @@ function App() {
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState(MECH_TYPES[0]);
   const [newOV, setNewOV] = useState(0);
+  const [newMove, setNewMove] = useState('');
+  const [newTMM, setNewTMM] = useState(0);
   const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, iniciativa-combate, combate
   const [activeMechIndex, setActiveMechIndex] = useState(0);
   const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
   const [commanderCard, setCommanderCard] = useState("A");
   const [draggedIndex, setDraggedIndex] = useState(null);
+
+  const calculateTMM = (moveValue) => {
+    if (!moveValue) return 0;
+    const moveStr = moveValue.toString().toLowerCase();
+    if (moveStr.includes('a')) return 0;
+    const num = parseInt(moveStr) || 0;
+    if (num >= 36) return 5;
+    if (num >= 20 && num <= 35) return 4;
+    if (num >= 14 && num <= 19) return 3;
+    if (num >= 10 && num <= 13) return 2;
+    if (num >= 6 && num <= 9) return 1;
+    return 0;
+  };
+
+  const handleMoveChange = (val) => {
+    setNewMove(val);
+    setNewTMM(calculateTMM(val));
+  };
 
   const addMech = (e) => {
     e.preventDefault();
@@ -38,10 +58,14 @@ function App() {
       type: newType,
       ov: parseInt(newOV) || 0,
       heat: 0,
+      move: newMove,
+      tmm: parseInt(newTMM) || 0,
       currentCard: null
     }]);
     setNewName('');
     setNewOV(0);
+    setNewMove('');
+    setNewTMM(0);
   };
 
   const removeMech = (id) => {
@@ -55,6 +79,19 @@ function App() {
         if (newHeat < 0) newHeat = 0;
         if (newHeat > 4) newHeat = 4;
         return { ...m, heat: newHeat };
+      }
+      return m;
+    }));
+  };
+
+  const updateMech = (id, field, value) => {
+    setMechs(mechs.map(m => {
+      if (m.id === id) {
+        const updated = { ...m, [field]: value };
+        if (field === 'move') {
+          updated.tmm = calculateTMM(value);
+        }
+        return updated;
       }
       return m;
     }));
@@ -233,6 +270,7 @@ function App() {
                   const found = mechsDB.find(m => m.name === val);
                   if (found) {
                     setNewOV(found.overheat || 0);
+                    handleMoveChange(found.move || '');
                     const roleLower = (found.role || '').toLowerCase();
                     const matchType = MECH_TYPES.find(t => t.toLowerCase() === roleLower) || MECH_TYPES.find(t => t.toLowerCase().startsWith(roleLower));
                     if (matchType) {
@@ -255,6 +293,24 @@ function App() {
                 onChange={(e) => setNewOV(e.target.value)}
                 style={{ width: '60px' }}
                 title="Overheating (OV) 0-4"
+              />
+              <input
+                type="text"
+                placeholder="Move"
+                value={newMove}
+                onChange={(e) => handleMoveChange(e.target.value)}
+                style={{ width: '60px' }}
+                title="Movimiento"
+              />
+              <input
+                type="number"
+                placeholder="TMM"
+                min="0"
+                max="5"
+                value={newTMM}
+                onChange={(e) => setNewTMM(e.target.value)}
+                style={{ width: '60px' }}
+                title="TMM"
               />
               <button type="submit">
                 <Plus size={18} />
@@ -285,6 +341,8 @@ function App() {
                         <span className="sidebar-type">{m.type}</span>
                         <div className="sidebar-stats">
                           <span className="stat-badge">OV: {m.ov || 0}</span>
+                          <span className="stat-badge">Move: {m.move || '-'}</span>
+                          <span className="stat-badge">TMM: {m.tmm ?? '-'}</span>
                           <span className="stat-badge">Heat: {m.heat || 0}/4</span>
                         </div>
                       </div>
@@ -302,6 +360,8 @@ function App() {
                         <span className="mech-type">{mechs[activeMechIndex]?.type}</span>
                         <div className="principal-stats">
                           <span className="stat-badge">OV: {mechs[activeMechIndex]?.ov || 0}</span>
+                          <span className="stat-badge">Move: {mechs[activeMechIndex]?.move || '-'}</span>
+                          <span className="stat-badge">TMM: {mechs[activeMechIndex]?.tmm ?? '-'}</span>
                           <div className="heat-control-container">
                             <span className="stat-badge">Heat: {mechs[activeMechIndex]?.heat || 0}/4</span>
                             {currentPhase === 'combate' && (
@@ -377,6 +437,17 @@ function App() {
                         <span className="mech-type">{mech.type}</span>
                         <div className="grid-stats">
                           <span className="stat-badge">OV: {mech.ov || 0}</span>
+                          {currentPhase === 'mantenimiento' ? (
+                            <>
+                              <input type="text" value={mech.move || ''} onChange={(e) => updateMech(mech.id, 'move', e.target.value)} className="inline-input" style={{width: '60px', padding: '2px', borderRadius: '4px', border: '1px solid #777', backgroundColor: '#333', color: '#fff'}} title="Move" placeholder="Move" />
+                              <input type="number" value={mech.tmm || 0} onChange={(e) => updateMech(mech.id, 'tmm', parseInt(e.target.value) || 0)} className="inline-input" style={{width: '50px', padding: '2px', borderRadius: '4px', border: '1px solid #777', backgroundColor: '#333', color: '#fff'}} title="TMM" placeholder="TMM" />
+                            </>
+                          ) : (
+                            <>
+                              <span className="stat-badge">Move: {mech.move || '-'}</span>
+                              <span className="stat-badge">TMM: {mech.tmm ?? '-'}</span>
+                            </>
+                          )}
                           <div className="heat-control-container">
                             <span className="stat-badge">Heat: {mech.heat || 0}/4</span>
                             {(currentPhase === 'mantenimiento' || currentPhase === 'combate') && (

@@ -80,7 +80,8 @@ if (fs.existsSync(csvPath)) {
       }
       const overheat = parseInt(row[19]) || 0;
       const role = row[25] || '';
-      mechsDB.push({ name, overheat, role });
+      const move = row[8] || '';
+      mechsDB.push({ name, overheat, role, move });
     }
   }
   
