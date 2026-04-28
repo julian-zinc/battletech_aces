@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Cpu, RefreshCw, ChevronUp, ChevronDown, Play, Sword, Zap, User } from 'lucide-react';
+import cardManifest from './cardManifest.json';
 
 const MECH_TYPES = [
   "Ambusher (Infantry)",
@@ -19,6 +20,7 @@ function App() {
   const [mechs, setMechs] = useState([]);
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState(MECH_TYPES[0]);
+  const [newOV, setNewOV] = useState(0);
   const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, iniciativa-combate, combate
   const [activeMechIndex, setActiveMechIndex] = useState(0);
   const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
@@ -33,34 +35,61 @@ function App() {
       id: Date.now(),
       name: newName,
       type: newType,
+      ov: parseInt(newOV) || 0,
+      heat: 0,
       currentCard: null
     }]);
     setNewName('');
+    setNewOV(0);
   };
 
   const removeMech = (id) => {
     setMechs(mechs.filter(m => m.id !== id));
   };
 
-  const drawAllCards = () => {
-    const updatedMechs = mechs.map(m => {
-      let randomNum;
-      const lastNumMatch = m.currentCard?.match(/\/(\d+)\.png$/);
-      const lastNum = lastNumMatch ? parseInt(lastNumMatch[1]) : null;
+  const adjustHeat = (id, delta) => {
+    setMechs(mechs.map(m => {
+      if (m.id === id) {
+        let newHeat = (m.heat || 0) + delta;
+        if (newHeat < 0) newHeat = 0;
+        if (newHeat > 4) newHeat = 4;
+        return { ...m, heat: newHeat };
+      }
+      return m;
+    }));
+  };
+
+  const generateAllCards = (currentMechs) => {
+    return currentMechs.map(m => {
+      const typeImages = cardManifest[m.type] || [];
+      if (typeImages.length === 0) return { ...m, currentCard: null, movInit: 0, comInit: 0 };
+      
+      let randomFile;
+      const lastFileMatch = m.currentCard?.match(/\/([^/]+)$/);
+      const lastFile = lastFileMatch ? lastFileMatch[1] : null;
 
       do {
-        randomNum = Math.floor(Math.random() * 6) + 1;
-      } while (randomNum === lastNum && mechs.length > 0); // mechs.length > 0 is just safe check
+        randomFile = typeImages[Math.floor(Math.random() * typeImages.length)];
+      } while (randomFile === lastFile && typeImages.length > 1);
 
       const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-      const cardPath = `${base}/assets/${m.type}/${randomNum}.png`;
-      return { ...m, currentCard: cardPath };
+      const cardPath = `${base}/assets/${m.type}/${randomFile}`;
+      
+      const match = randomFile.match(/(\d{3})\s+(\d{3})/);
+      let movInit = 0;
+      let comInit = 0;
+      if (match) {
+        movInit = parseInt(match[1]);
+        comInit = parseInt(match[2]);
+      }
+      return { ...m, currentCard: cardPath, movInit, comInit };
     });
-    setMechs(updatedMechs);
   };
 
   const startIniciativa = () => {
-    drawAllCards();
+    const updatedMechs = generateAllCards(mechs);
+    const sorted = [...updatedMechs].sort((a, b) => (a.movInit || 0) - (b.movInit || 0));
+    setMechs(sorted);
     setCurrentPhase('iniciativa');
   };
 
@@ -76,6 +105,8 @@ function App() {
   };
 
   const startIniciativaCombate = () => {
+    const sorted = [...mechs].sort((a, b) => (a.comInit || 0) - (b.comInit || 0));
+    setMechs(sorted);
     setCurrentPhase('iniciativa-combate');
   };
 
@@ -196,6 +227,16 @@ function App() {
                   <option key={type} value={type}>{type}</option>
                 ))}
               </select>
+              <input
+                type="number"
+                placeholder="OV"
+                min="0"
+                max="4"
+                value={newOV}
+                onChange={(e) => setNewOV(e.target.value)}
+                style={{ width: '60px' }}
+                title="Overheating (OV) 0-4"
+              />
               <button type="submit">
                 <Plus size={18} />
                 Añadir
@@ -223,6 +264,10 @@ function App() {
                       <div className="sidebar-info">
                         <span className="sidebar-name">{m.name}</span>
                         <span className="sidebar-type">{m.type}</span>
+                        <div className="sidebar-stats">
+                          <span className="stat-badge">OV: {m.ov || 0}</span>
+                          <span className="stat-badge">Heat: {m.heat || 0}/4</span>
+                        </div>
                       </div>
                       <div className={`card-display-sidebar ${currentPhase}`}>
                         {m.currentCard && <img src={m.currentCard} alt="Mech Header" />}
@@ -236,6 +281,18 @@ function App() {
                       <div className="mech-header">
                         <h2>{mechs[activeMechIndex]?.name}</h2>
                         <span className="mech-type">{mechs[activeMechIndex]?.type}</span>
+                        <div className="principal-stats">
+                          <span className="stat-badge">OV: {mechs[activeMechIndex]?.ov || 0}</span>
+                          <div className="heat-control-container">
+                            <span className="stat-badge">Heat: {mechs[activeMechIndex]?.heat || 0}/4</span>
+                            {currentPhase === 'combate' && (
+                              <div className="heat-controls-mini">
+                                <button onClick={() => adjustHeat(mechs[activeMechIndex].id, -1)} disabled={(mechs[activeMechIndex]?.heat || 0) <= 0}>-</button>
+                                <button onClick={() => adjustHeat(mechs[activeMechIndex].id, 1)} disabled={(mechs[activeMechIndex]?.heat || 0) >= 4}>+</button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <div className={`card-display-principal ${currentPhase}`}>
                         {mechs[activeMechIndex]?.currentCard && (
@@ -299,6 +356,18 @@ function App() {
                       <div className="mech-info">
                         <h2>{mech.name}</h2>
                         <span className="mech-type">{mech.type}</span>
+                        <div className="grid-stats">
+                          <span className="stat-badge">OV: {mech.ov || 0}</span>
+                          <div className="heat-control-container">
+                            <span className="stat-badge">Heat: {mech.heat || 0}/4</span>
+                            {(currentPhase === 'mantenimiento' || currentPhase === 'combate') && (
+                              <div className="heat-controls-mini">
+                                <button onClick={() => adjustHeat(mech.id, -1)} disabled={(mech.heat || 0) <= 0}>-</button>
+                                <button onClick={() => adjustHeat(mech.id, 1)} disabled={(mech.heat || 0) >= 4}>+</button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
                       <div className="mech-actions">

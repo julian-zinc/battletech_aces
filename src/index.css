@@ -673,3 +673,60 @@ main {
   text-align: center;
   color: var(--text-muted);
 }
+
+/* Stats and Heat Controls */
+.sidebar-stats, .principal-stats, .grid-stats {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.stat-badge {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  border: 1px solid var(--glass-border);
+}
+
+.heat-control-container {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.heat-controls-mini {
+  display: flex;
+  gap: 2px;
+}
+
+.heat-controls-mini button {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: var(--primary);
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.heat-controls-mini button:hover:not(:disabled) {
+  background: var(--primary);
+  color: #000;
+}
+
+.heat-controls-mini button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: var(--glass-border);
+  color: var(--text-muted);
+}
