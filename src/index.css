@@ -158,6 +158,12 @@ header {
   padding-left: 0.2rem;
 }
 
+.input-group-row {
+  display: flex;
+  flex-direction: row;
+  gap: 0.25rem;
+}
+
 .commander-setup {
   display: flex;
   align-items: center;

@@ -24,6 +24,7 @@ function App() {
   const [newOV, setNewOV] = useState(0);
   const [newMove, setNewMove] = useState('');
   const [newTMM, setNewTMM] = useState(0);
+  const [newDmg, setNewDmg] = useState({ S: '0', M: '0', L: '0' });
   const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, iniciativa-combate, combate
   const [activeMechIndex, setActiveMechIndex] = useState(0);
   const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
@@ -60,12 +61,14 @@ function App() {
       heat: 0,
       move: newMove,
       tmm: parseInt(newTMM) || 0,
+      damage: { ...newDmg },
       currentCard: null
     }]);
     setNewName('');
     setNewOV(0);
     setNewMove('');
     setNewTMM(0);
+    setNewDmg({ S: '0', M: '0', L: '0' });
   };
 
   const removeMech = (id) => {
@@ -92,6 +95,18 @@ function App() {
           updated.tmm = calculateTMM(value);
         }
         return updated;
+      }
+      return m;
+    }));
+  };
+
+  const updateMechDmg = (id, range, value) => {
+    setMechs(mechs.map(m => {
+      if (m.id === id) {
+        return {
+          ...m,
+          damage: { ...m.damage, [range]: value }
+        };
       }
       return m;
     }));
@@ -273,6 +288,7 @@ function App() {
                       if (found) {
                         setNewOV(found.overheat || 0);
                         handleMoveChange(found.move || '');
+                        setNewDmg(found.damage || { S: '0', M: '0', L: '0' });
                         const roleLower = (found.role || '').toLowerCase();
                         const matchType = MECH_TYPES.find(t => t.toLowerCase() === roleLower) || MECH_TYPES.find(t => t.toLowerCase().startsWith(roleLower));
                         if (matchType) {
@@ -332,6 +348,21 @@ function App() {
                   />
                 </div>
 
+                <div className="input-group-row">
+                  <div className="input-group">
+                    <label style={{textAlign: 'center'}}>S</label>
+                    <input type="text" value={newDmg.S} onChange={(e) => setNewDmg({...newDmg, S: e.target.value})} style={{width: '45px', textAlign: 'center'}} title="Damage Corto" />
+                  </div>
+                  <div className="input-group">
+                    <label style={{textAlign: 'center'}}>M</label>
+                    <input type="text" value={newDmg.M} onChange={(e) => setNewDmg({...newDmg, M: e.target.value})} style={{width: '45px', textAlign: 'center'}} title="Damage Medio" />
+                  </div>
+                  <div className="input-group">
+                    <label style={{textAlign: 'center'}}>L</label>
+                    <input type="text" value={newDmg.L} onChange={(e) => setNewDmg({...newDmg, L: e.target.value})} style={{width: '45px', textAlign: 'center'}} title="Damage Largo" />
+                  </div>
+                </div>
+
                 <button type="submit">
                   <Plus size={18} />
                   Añadir
@@ -363,6 +394,9 @@ function App() {
                           <span className="stat-badge">OV: {m.ov || 0}</span>
                           <span className="stat-badge">Move: {m.move || '-'}</span>
                           <span className="stat-badge">TMM: {m.tmm ?? '-'}</span>
+                        </div>
+                        <div className="sidebar-stats">
+                          <span className="stat-badge" title="Damage: Corto / Medio / Largo">DMG: {m.damage?.S||'0'} / {m.damage?.M||'0'} / {m.damage?.L||'0'}</span>
                           <span className="stat-badge">Heat: {m.heat || 0}/4</span>
                         </div>
                       </div>
@@ -382,6 +416,7 @@ function App() {
                           <span className="stat-badge">OV: {mechs[activeMechIndex]?.ov || 0}</span>
                           <span className="stat-badge">Move: {mechs[activeMechIndex]?.move || '-'}</span>
                           <span className="stat-badge">TMM: {mechs[activeMechIndex]?.tmm ?? '-'}</span>
+                          <span className="stat-badge" title="Damage: Corto / Medio / Largo">DMG: {mechs[activeMechIndex]?.damage?.S||'0'} / {mechs[activeMechIndex]?.damage?.M||'0'} / {mechs[activeMechIndex]?.damage?.L||'0'}</span>
                           <div className="heat-control-container">
                             <span className="stat-badge">Heat: {mechs[activeMechIndex]?.heat || 0}/4</span>
                             {currentPhase === 'combate' && (
@@ -474,11 +509,20 @@ function App() {
                                 <label>TMM</label>
                                 <input type="number" value={mech.tmm || 0} onChange={(e) => updateMech(mech.id, 'tmm', parseInt(e.target.value) || 0)} style={{width: '50px'}} />
                               </div>
+                              <div className="inline-edit-group" style={{padding: '0.15rem 0.25rem', gap: '0.1rem'}}>
+                                <label style={{marginRight: '0.2rem'}}>DMG</label>
+                                <input type="text" value={mech.damage?.S || '0'} onChange={(e) => updateMechDmg(mech.id, 'S', e.target.value)} style={{width: '35px', textAlign: 'center', padding: '0.15rem'}} title="S" />
+                                <input type="text" value={mech.damage?.M || '0'} onChange={(e) => updateMechDmg(mech.id, 'M', e.target.value)} style={{width: '35px', textAlign: 'center', padding: '0.15rem'}} title="M" />
+                                <input type="text" value={mech.damage?.L || '0'} onChange={(e) => updateMechDmg(mech.id, 'L', e.target.value)} style={{width: '35px', textAlign: 'center', padding: '0.15rem'}} title="L" />
+                              </div>
                             </>
                           ) : (
                             <>
                               <span className="stat-badge">Move: {mech.move || '-'}</span>
                               <span className="stat-badge">TMM: {mech.tmm ?? '-'}</span>
+                              {currentPhase === 'combate' && (
+                                <span className="stat-badge" title="Damage: Corto / Medio / Largo">DMG: {mech.damage?.S||'0'} / {mech.damage?.M||'0'} / {mech.damage?.L||'0'}</span>
+                              )}
                             </>
                           )}
                           <div className="heat-control-container">

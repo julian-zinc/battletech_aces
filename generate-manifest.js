@@ -82,7 +82,20 @@ if (fs.existsSync(csvPath)) {
       const role = row[25] || '';
       const move = row[8] || '';
       const imagelink = row[21] || '';
-      mechsDB.push({ name, overheat, role, move, imagelink });
+      
+      const formatDmg = (dmg, min) => {
+        if (dmg === '0' && min === '1') return '0*';
+        if (!dmg) return '0';
+        return dmg;
+      };
+      
+      const damage = {
+        S: formatDmg(row[11], row[12]),
+        M: formatDmg(row[13], row[14]),
+        L: formatDmg(row[15], row[16])
+      };
+
+      mechsDB.push({ name, overheat, role, move, imagelink, damage });
     }
   }
   
