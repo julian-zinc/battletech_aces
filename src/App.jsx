@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Cpu, RefreshCw, ChevronUp, ChevronDown, Play, Sword, Zap, User } from 'lucide-react';
 import cardManifest from './cardManifest.json';
+import mechsDB from './mechsDB.json';
 
 const MECH_TYPES = [
   "Ambusher (Infantry)",
@@ -216,11 +217,29 @@ function App() {
               </div>
 
               <form className="add-mech-form" onSubmit={addMech}>
+              <datalist id="mech-suggestions">
+                {mechsDB.map((m, i) => (
+                  <option key={i} value={m.name} />
+                ))}
+              </datalist>
               <input
                 type="text"
+                list="mech-suggestions"
                 placeholder="Nombre del Mech..."
                 value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNewName(val);
+                  const found = mechsDB.find(m => m.name === val);
+                  if (found) {
+                    setNewOV(found.overheat || 0);
+                    const roleLower = (found.role || '').toLowerCase();
+                    const matchType = MECH_TYPES.find(t => t.toLowerCase() === roleLower) || MECH_TYPES.find(t => t.toLowerCase().startsWith(roleLower));
+                    if (matchType) {
+                      setNewType(matchType);
+                    }
+                  }
+                }}
               />
               <select value={newType} onChange={(e) => setNewType(e.target.value)}>
                 {MECH_TYPES.map(type => (

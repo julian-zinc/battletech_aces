@@ -37,3 +37,53 @@ MECH_TYPES.forEach(type => {
 
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 console.log(`Manifest written to ${manifestPath}`);
+
+const mechsDbPath = path.join(__dirname, 'src', 'mechsDB.json');
+
+function parseCSVLine(line) {
+  const result = [];
+  let inQuotes = false;
+  let current = "";
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i+1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+const csvPath = path.join(assetsDir, 'mechs.csv');
+if (fs.existsSync(csvPath)) {
+  const content = fs.readFileSync(csvPath, 'utf8');
+  const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
+  const mechsDB = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const row = parseCSVLine(lines[i]);
+    if (row.length > 25) {
+      let name = row[1];
+      const nameMatch = name.match(/=hyperlink\([^,]+,\s*"([^"]+)"\)/i);
+      if (nameMatch) {
+         name = nameMatch[1];
+      }
+      const overheat = parseInt(row[19]) || 0;
+      const role = row[25] || '';
+      mechsDB.push({ name, overheat, role });
+    }
+  }
+  
+  fs.writeFileSync(mechsDbPath, JSON.stringify(mechsDB, null, 2));
+  console.log(`MechsDB written to ${mechsDbPath}`);
+}
