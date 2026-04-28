@@ -17,6 +17,18 @@ const MECH_TYPES = [
   "Sniper"
 ];
 
+const MechDisplayName = ({ mech }) => {
+  if (!mech) return null;
+  const nameToUse = mech.baseName || mech.name;
+  if (mech.variantIndex > 0) {
+    const letter = String.fromCharCode(64 + mech.variantIndex);
+    return (
+      <>{nameToUse} <span className="mech-variant-letter">[{letter}]</span></>
+    );
+  }
+  return <>{nameToUse}</>;
+};
+
 function App() {
   const [mechs, setMechs] = useState([]);
   const [newName, setNewName] = useState('');
@@ -51,11 +63,31 @@ function App() {
 
   const addMech = (e) => {
     e.preventDefault();
-    if (!newName.trim()) return;
+    const cleanName = newName.trim();
+    if (!cleanName) return;
 
-    setMechs([...mechs, {
+    let updatedMechs = [...mechs];
+    const existing = updatedMechs.filter(m => (m.baseName || m.name) === cleanName);
+    
+    let variantIndex = 0;
+    if (existing.length > 0) {
+      const maxVariant = Math.max(...existing.map(m => m.variantIndex || 0), 0);
+      if (maxVariant === 0) {
+        const firstIndex = updatedMechs.findIndex(m => (m.baseName || m.name) === cleanName);
+        if (firstIndex !== -1) {
+          updatedMechs[firstIndex] = { ...updatedMechs[firstIndex], variantIndex: 1, baseName: cleanName };
+        }
+        variantIndex = 2; 
+      } else {
+        variantIndex = maxVariant + 1;
+      }
+    }
+
+    updatedMechs.push({
       id: Date.now(),
-      name: newName,
+      name: cleanName,
+      baseName: cleanName,
+      variantIndex,
       type: newType,
       ov: parseInt(newOV) || 0,
       heat: 0,
@@ -63,7 +95,8 @@ function App() {
       tmm: parseInt(newTMM) || 0,
       damage: { ...newDmg },
       currentCard: null
-    }]);
+    });
+    setMechs(updatedMechs);
     setNewName('');
     setNewOV(0);
     setNewMove('');
@@ -388,7 +421,7 @@ function App() {
                       className={`sidebar-item ${i === activeMechIndex ? 'active' : ''} ${i < activeMechIndex ? 'completed' : ''}`}
                     >
                       <div className="sidebar-info">
-                        <span className="sidebar-name">{m.name}</span>
+                        <span className="sidebar-name"><MechDisplayName mech={m} /></span>
                         <span className="sidebar-type">{m.type}</span>
                         <div className="sidebar-stats">
                           <span className="stat-badge">OV: {m.ov || 0}</span>
@@ -410,7 +443,7 @@ function App() {
                 <div className="movement-main">
                   <div className="active-mech-display">
                       <div className="mech-header">
-                        <h2>{mechs[activeMechIndex]?.name}</h2>
+                        <h2><MechDisplayName mech={mechs[activeMechIndex]} /></h2>
                         <span className="mech-type">{mechs[activeMechIndex]?.type}</span>
                         <div className="principal-stats">
                           <span className="stat-badge">OV: {mechs[activeMechIndex]?.ov || 0}</span>
@@ -495,7 +528,7 @@ function App() {
                       </div>
                       
                       <div className="mech-info">
-                        <h2>{mech.name}</h2>
+                        <h2><MechDisplayName mech={mech} /></h2>
                         <span className="mech-type">{mech.type}</span>
                         <div className="grid-stats">
                           <span className="stat-badge">OV: {mech.ov || 0}</span>
