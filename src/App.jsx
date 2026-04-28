@@ -441,7 +441,14 @@ function App() {
                   >
                     <div className="mech-header">
                       <div className={`card-display-${currentPhase}`}>
-                        {mech.currentCard ? (
+                        {currentPhase === 'mantenimiento' ? (
+                          <img
+                            src={mechsDB.find(m => m.name === mech.name)?.imagelink || 'https://via.placeholder.com/250x350?text=No+Image'}
+                            alt="Mech Image"
+                            className="card-image"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                          />
+                        ) : mech.currentCard ? (
                           <img
                             src={mech.currentCard}
                             alt="Mech Card"
