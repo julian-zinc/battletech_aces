@@ -118,7 +118,7 @@ header {
 .add-mech-form {
   display: flex;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
 }
 
@@ -133,6 +133,7 @@ header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  height: 38px;
   transition: all 0.2s;
   box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
 }
@@ -140,6 +141,21 @@ header {
 .add-mech-form button:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.input-group label {
+  font-size: 0.70rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-left: 0.2rem;
 }
 
 .commander-setup {
@@ -691,6 +707,36 @@ main {
   font-weight: 700;
   color: var(--text-main);
   border: 1px solid var(--glass-border);
+}
+
+.inline-edit-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.15rem 0.25rem 0.15rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+}
+
+.inline-edit-group label {
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.inline-edit-group input {
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  font-size: 0.8rem;
+}
+
+.inline-edit-group input:focus {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--primary);
 }
 
 .heat-control-container {

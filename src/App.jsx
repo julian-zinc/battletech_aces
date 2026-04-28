@@ -254,69 +254,89 @@ function App() {
               </div>
 
               <form className="add-mech-form" onSubmit={addMech}>
-              <datalist id="mech-suggestions">
-                {mechsDB.map((m, i) => (
-                  <option key={i} value={m.name} />
-                ))}
-              </datalist>
-              <input
-                type="text"
-                list="mech-suggestions"
-                placeholder="Nombre del Mech..."
-                value={newName}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setNewName(val);
-                  const found = mechsDB.find(m => m.name === val);
-                  if (found) {
-                    setNewOV(found.overheat || 0);
-                    handleMoveChange(found.move || '');
-                    const roleLower = (found.role || '').toLowerCase();
-                    const matchType = MECH_TYPES.find(t => t.toLowerCase() === roleLower) || MECH_TYPES.find(t => t.toLowerCase().startsWith(roleLower));
-                    if (matchType) {
-                      setNewType(matchType);
-                    }
-                  }
-                }}
-              />
-              <select value={newType} onChange={(e) => setNewType(e.target.value)}>
-                {MECH_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-              <input
-                type="number"
-                placeholder="OV"
-                min="0"
-                max="4"
-                value={newOV}
-                onChange={(e) => setNewOV(e.target.value)}
-                style={{ width: '60px' }}
-                title="Overheating (OV) 0-4"
-              />
-              <input
-                type="text"
-                placeholder="Move"
-                value={newMove}
-                onChange={(e) => handleMoveChange(e.target.value)}
-                style={{ width: '60px' }}
-                title="Movimiento"
-              />
-              <input
-                type="number"
-                placeholder="TMM"
-                min="0"
-                max="5"
-                value={newTMM}
-                onChange={(e) => setNewTMM(e.target.value)}
-                style={{ width: '60px' }}
-                title="TMM"
-              />
-              <button type="submit">
-                <Plus size={18} />
-                Añadir
-              </button>
-            </form>
+                <div className="input-group">
+                  <label>Nombre del Mech</label>
+                  <datalist id="mech-suggestions">
+                    {mechsDB.map((m, i) => (
+                      <option key={i} value={m.name} />
+                    ))}
+                  </datalist>
+                  <input
+                    type="text"
+                    list="mech-suggestions"
+                    placeholder="Buscar mech..."
+                    value={newName}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewName(val);
+                      const found = mechsDB.find(m => m.name === val);
+                      if (found) {
+                        setNewOV(found.overheat || 0);
+                        handleMoveChange(found.move || '');
+                        const roleLower = (found.role || '').toLowerCase();
+                        const matchType = MECH_TYPES.find(t => t.toLowerCase() === roleLower) || MECH_TYPES.find(t => t.toLowerCase().startsWith(roleLower));
+                        if (matchType) {
+                          setNewType(matchType);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                
+                <div className="input-group">
+                  <label>Tipo</label>
+                  <select value={newType} onChange={(e) => setNewType(e.target.value)}>
+                    {MECH_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label>OV</label>
+                  <input
+                    type="number"
+                    placeholder="OV"
+                    min="0"
+                    max="4"
+                    value={newOV}
+                    onChange={(e) => setNewOV(e.target.value)}
+                    style={{ width: '60px' }}
+                    title="Overheating (OV) 0-4"
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Move</label>
+                  <input
+                    type="text"
+                    placeholder="Move"
+                    value={newMove}
+                    onChange={(e) => handleMoveChange(e.target.value)}
+                    style={{ width: '60px' }}
+                    title="Movimiento"
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>TMM</label>
+                  <input
+                    type="number"
+                    placeholder="TMM"
+                    min="0"
+                    max="5"
+                    value={newTMM}
+                    onChange={(e) => setNewTMM(e.target.value)}
+                    style={{ width: '60px' }}
+                    title="TMM"
+                  />
+                </div>
+
+                <button type="submit">
+                  <Plus size={18} />
+                  Añadir
+                </button>
+              </form>
           </>)}
         </div>
       </header>
@@ -439,8 +459,14 @@ function App() {
                           <span className="stat-badge">OV: {mech.ov || 0}</span>
                           {currentPhase === 'mantenimiento' ? (
                             <>
-                              <input type="text" value={mech.move || ''} onChange={(e) => updateMech(mech.id, 'move', e.target.value)} className="inline-input" style={{width: '60px', padding: '2px', borderRadius: '4px', border: '1px solid #777', backgroundColor: '#333', color: '#fff'}} title="Move" placeholder="Move" />
-                              <input type="number" value={mech.tmm || 0} onChange={(e) => updateMech(mech.id, 'tmm', parseInt(e.target.value) || 0)} className="inline-input" style={{width: '50px', padding: '2px', borderRadius: '4px', border: '1px solid #777', backgroundColor: '#333', color: '#fff'}} title="TMM" placeholder="TMM" />
+                              <div className="inline-edit-group">
+                                <label>Move</label>
+                                <input type="text" value={mech.move || ''} onChange={(e) => updateMech(mech.id, 'move', e.target.value)} style={{width: '50px'}} />
+                              </div>
+                              <div className="inline-edit-group">
+                                <label>TMM</label>
+                                <input type="number" value={mech.tmm || 0} onChange={(e) => updateMech(mech.id, 'tmm', parseInt(e.target.value) || 0)} style={{width: '50px'}} />
+                              </div>
                             </>
                           ) : (
                             <>
