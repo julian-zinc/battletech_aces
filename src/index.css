@@ -378,6 +378,40 @@ main {
   color: var(--primary);
 }
 
+.edge-btns-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.move-edge-btn {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 6px 12px;
+  background: var(--primary);
+  color: #000;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.2);
+}
+
+.move-edge-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.move-edge-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
 /* Movement Phase Layout */
 .movement-phase {
   display: grid;

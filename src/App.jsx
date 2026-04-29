@@ -39,7 +39,7 @@ function App() {
   const [newTMM, setNewTMM] = useState(0);
   const [newDmg, setNewDmg] = useState({ S: '0', M: '0', L: '0' });
   const [newAbilities, setNewAbilities] = useState('');
-  const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, iniciativa-combate, combate
+  const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, combate
   const [activeMechIndex, setActiveMechIndex] = useState(0);
   const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
   const [commanderCard, setCommanderCard] = useState("A");
@@ -195,10 +195,11 @@ function App() {
     }
   };
 
-  const startIniciativaCombate = () => {
+  const startCombate = () => {
     const sorted = [...mechs].sort((a, b) => (a.comInit || 0) - (b.comInit || 0));
     setMechs(sorted);
-    setCurrentPhase('iniciativa-combate');
+    setCurrentPhase('combate');
+    setActiveMechIndex(0);
   };
 
   const prevMech = () => {
@@ -214,6 +215,22 @@ function App() {
       [newMechs[index], newMechs[targetIndex]] = [newMechs[targetIndex], newMechs[index]];
       setMechs(newMechs);
     }
+  };
+
+  const moveToFirst = (index) => {
+    if (index === 0) return;
+    const newMechs = [...mechs];
+    const item = newMechs.splice(index, 1)[0];
+    newMechs.unshift(item);
+    setMechs(newMechs);
+  };
+
+  const moveToLast = (index) => {
+    if (index === mechs.length - 1) return;
+    const newMechs = [...mechs];
+    const item = newMechs.splice(index, 1)[0];
+    newMechs.push(item);
+    setMechs(newMechs);
   };
 
   const onDragStart = (e, index) => {
@@ -327,18 +344,8 @@ function App() {
               <Play size={18} /> Movimiento
             </button>
             <button 
-              className={`phase-btn ${currentPhase === 'iniciativa-combate' ? 'active' : ''}`} 
-              onClick={startIniciativaCombate}
-              disabled={mechs.length === 0}
-            >
-              <Zap size={18} /> Iniciativa Combate
-            </button>
-            <button 
               className={`phase-btn ${currentPhase === 'combate' ? 'active' : ''}`} 
-              onClick={() => {
-                setCurrentPhase('combate');
-                setActiveMechIndex(0);
-              }}
+              onClick={startCombate}
               disabled={mechs.length === 0}
             >
               <Sword size={18} /> Combate
@@ -385,7 +392,16 @@ function App() {
                         setNewDmg(found.damage || { S: '0', M: '0', L: '0' });
                         setNewAbilities(found.abilities || '');
                         const roleLower = (found.role || '').toLowerCase();
-                        const matchType = MECH_TYPES.find(t => t.toLowerCase() === roleLower) || MECH_TYPES.find(t => t.toLowerCase().startsWith(roleLower));
+                        const moveLower = (found.move || '').toLowerCase();
+                        
+                        let targetRole = roleLower;
+                        if ((roleLower === 'scout' || roleLower === 'striker') && moveLower.includes('h')) {
+                          targetRole = `${roleLower} (hover)`;
+                        } else if (roleLower === 'skirmisher' && moveLower.includes('j')) {
+                          targetRole = 'skirmisher (jmps)';
+                        }
+
+                        const matchType = MECH_TYPES.find(t => t.toLowerCase() === targetRole) || MECH_TYPES.find(t => t.toLowerCase().startsWith(targetRole));
                         if (matchType) {
                           setNewType(matchType);
                         }
@@ -484,17 +500,6 @@ function App() {
                     >
                       <div className="sidebar-info">
                         <span className="sidebar-name"><MechDisplayName mech={m} /></span>
-                        <span className="sidebar-type">{m.type}</span>
-                        <div className="sidebar-stats">
-                          <span className="stat-badge">OV: {m.ov || 0}</span>
-                          <span className="stat-badge">Move: {m.move || '-'}</span>
-                          <span className="stat-badge">TMM: {m.tmm ?? '-'}</span>
-                        </div>
-                        <div className="sidebar-stats">
-                          <span className="stat-badge" title="Damage: Corto / Medio / Largo">DMG: {m.damage?.S||'0'} / {m.damage?.M||'0'} / {m.damage?.L||'0'}</span>
-                          <span className="stat-badge">Heat: {m.heat || 0}/4</span>
-                        </div>
-                        {renderAbilities(m)}
                       </div>
                       <div className={`card-display-sidebar ${currentPhase}`}>
                         {m.currentCard && <img src={m.currentCard} alt="Mech Header" />}
@@ -541,12 +546,12 @@ function App() {
                           <button 
                             className="primary-btn phase-transition" 
                             onClick={() => {
-                              if (currentPhase === 'movimiento') startIniciativaCombate();
+                              if (currentPhase === 'movimiento') startCombate();
                               else setCurrentPhase('mantenimiento');
                             }}
                           >
                             {currentPhase === 'movimiento' ? (
-                              <><Zap size={18} /> Iniciativa Combate</>
+                              <><Sword size={18} /> Combate</>
                             ) : (
                               <><RefreshCw size={18} /> Finalizar Turno</>
                             )}
@@ -566,12 +571,22 @@ function App() {
                   <div 
                     key={mech.id} 
                     className={`mech-card-view ${currentPhase}`}
-                    draggable={currentPhase === 'iniciativa' || currentPhase === 'iniciativa-combate'}
+                    draggable={currentPhase === 'iniciativa'}
                     onDragStart={(e) => onDragStart(e, index)}
                     onDragOver={(e) => onDragOver(e, index)}
                     onDrop={(e) => onDrop(e, index)}
                   >
                     <div className="mech-header">
+                      {currentPhase === 'iniciativa' && (
+                        <div className="reorder-btns">
+                          <button onClick={() => moveMech(index, -1)} disabled={index === 0}>
+                            <ChevronUp size={16} />
+                          </button>
+                          <button onClick={() => moveMech(index, 1)} disabled={index === mechs.length - 1}>
+                            <ChevronDown size={16} />
+                          </button>
+                        </div>
+                      )}
                       <div className={`card-display-${currentPhase}`}>
                         {currentPhase === 'mantenimiento' ? (
                           <img
@@ -593,11 +608,11 @@ function App() {
                       
                       <div className="mech-info">
                         <h2><MechDisplayName mech={mech} /></h2>
-                        <span className="mech-type">{mech.type}</span>
-                        <div className="grid-stats">
-                          <span className="stat-badge">OV: {mech.ov || 0}</span>
-                          {currentPhase === 'mantenimiento' ? (
-                            <>
+                        {currentPhase === 'mantenimiento' && (
+                          <>
+                            <span className="mech-type">{mech.type}</span>
+                            <div className="grid-stats">
+                              <span className="stat-badge">OV: {mech.ov || 0}</span>
                               <div className="inline-edit-group">
                                 <label>Move</label>
                                 <input type="text" value={mech.move || ''} onChange={(e) => updateMech(mech.id, 'move', e.target.value)} style={{width: '50px'}} />
@@ -612,37 +627,27 @@ function App() {
                                 <input type="text" value={mech.damage?.M || '0'} onChange={(e) => updateMechDmg(mech.id, 'M', e.target.value)} style={{width: '35px', textAlign: 'center', padding: '0.15rem'}} title="M" />
                                 <input type="text" value={mech.damage?.L || '0'} onChange={(e) => updateMechDmg(mech.id, 'L', e.target.value)} style={{width: '35px', textAlign: 'center', padding: '0.15rem'}} title="L" />
                               </div>
-                            </>
-                          ) : (
-                            <>
-                              <span className="stat-badge">Move: {mech.move || '-'}</span>
-                              <span className="stat-badge">TMM: {mech.tmm ?? '-'}</span>
-                              {currentPhase === 'combate' && (
-                                <span className="stat-badge" title="Damage: Corto / Medio / Largo">DMG: {mech.damage?.S||'0'} / {mech.damage?.M||'0'} / {mech.damage?.L||'0'}</span>
-                              )}
-                            </>
-                          )}
-                          <div className="heat-control-container">
-                            <span className="stat-badge">Heat: {mech.heat || 0}/4</span>
-                            {(currentPhase === 'mantenimiento' || currentPhase === 'combate') && (
-                              <div className="heat-controls-mini">
-                                <button onClick={() => adjustHeat(mech.id, -1)} disabled={(mech.heat || 0) <= 0}>-</button>
-                                <button onClick={() => adjustHeat(mech.id, 1)} disabled={(mech.heat || 0) >= 4}>+</button>
+                              <div className="heat-control-container">
+                                <span className="stat-badge">Heat: {mech.heat || 0}/4</span>
+                                <div className="heat-controls-mini">
+                                  <button onClick={() => adjustHeat(mech.id, -1)} disabled={(mech.heat || 0) <= 0}>-</button>
+                                  <button onClick={() => adjustHeat(mech.id, 1)} disabled={(mech.heat || 0) >= 4}>+</button>
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                        {renderAbilities(mech)}
+                            </div>
+                            {renderAbilities(mech)}
+                          </>
+                        )}
                       </div>
 
                       <div className="mech-actions">
-                        {(currentPhase === 'iniciativa' || currentPhase === 'iniciativa-combate') && (
-                          <div className="reorder-btns">
-                            <button onClick={() => moveMech(index, -1)} disabled={index === 0}>
-                              <ChevronUp size={16} />
+                        {currentPhase === 'iniciativa' && (
+                          <div className="edge-btns-right">
+                            <button onClick={() => moveToFirst(index)} disabled={index === 0} title="MOVE FIRST" className="move-edge-btn">
+                              FIRST
                             </button>
-                            <button onClick={() => moveMech(index, 1)} disabled={index === mechs.length - 1}>
-                              <ChevronDown size={16} />
+                            <button onClick={() => moveToLast(index)} disabled={index === mechs.length - 1} title="MOVE LAST" className="move-edge-btn">
+                              LAST
                             </button>
                           </div>
                         )}
