@@ -95,10 +95,36 @@ if (fs.existsSync(csvPath)) {
         L: formatDmg(row[15], row[16])
       };
 
-      mechsDB.push({ name, overheat, role, move, imagelink, damage });
+      const abilities = row[20] || '';
+
+      mechsDB.push({ name, overheat, role, move, imagelink, damage, abilities });
     }
   }
   
   fs.writeFileSync(mechsDbPath, JSON.stringify(mechsDB, null, 2));
   console.log(`MechsDB written to ${mechsDbPath}`);
+}
+
+const specialCsvPath = path.join(assetsDir, 'special.csv');
+const specialDbPath = path.join(__dirname, 'src', 'specialDB.json');
+
+if (fs.existsSync(specialCsvPath)) {
+  const content = fs.readFileSync(specialCsvPath, 'utf8');
+  const lines = content.split(/\r?\n/).filter(l => l.trim() !== '');
+  const specialDB = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const row = parseCSVLine(lines[i]);
+    if (row.length >= 4) {
+      specialDB.push({
+        abbreviation: row[0],
+        ability: row[1],
+        summary: row[2],
+        rules: row[3]
+      });
+    }
+  }
+  
+  fs.writeFileSync(specialDbPath, JSON.stringify(specialDB, null, 2));
+  console.log(`SpecialDB written to ${specialDbPath}`);
 }

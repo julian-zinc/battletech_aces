@@ -1,0 +1,106 @@
+/* Add this at the end of e:\Dev\AntigravityProjects\Battletech_Aces\src\index.css */
+
+/* Special Abilities */
+.mech-abilities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.ability-tag {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: var(--primary);
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ability-tag:hover {
+  background: var(--primary);
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.sidebar-info .mech-abilities-list {
+  margin-top: 0.25rem;
+}
+
+/* Modal Overlay */
+.ability-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.ability-modal-content {
+  background: var(--bg-dark);
+  border: 1px solid var(--primary);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.close-modal:hover {
+  color: var(--primary);
+}
+
+.ability-modal-content h3 {
+  color: var(--primary);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.ability-modal-content h4 {
+  color: var(--text-main);
+  opacity: 0.9;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.ability-summary {
+  font-size: 0.95rem;
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  margin: 0;
+}
+
+.ability-rules {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Trash2, Cpu, RefreshCw, ChevronUp, ChevronDown, Play, Sword, Zap, User } from 'lucide-react';
 import cardManifest from './cardManifest.json';
 import mechsDB from './mechsDB.json';
+import specialDB from './specialDB.json';
 
 const MECH_TYPES = [
   "Ambusher (Infantry)",
@@ -37,11 +38,13 @@ function App() {
   const [newMove, setNewMove] = useState('');
   const [newTMM, setNewTMM] = useState(0);
   const [newDmg, setNewDmg] = useState({ S: '0', M: '0', L: '0' });
+  const [newAbilities, setNewAbilities] = useState('');
   const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, iniciativa-combate, combate
   const [activeMechIndex, setActiveMechIndex] = useState(0);
   const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
   const [commanderCard, setCommanderCard] = useState("A");
   const [draggedIndex, setDraggedIndex] = useState(null);
+  const [selectedAbility, setSelectedAbility] = useState(null);
 
   const calculateTMM = (moveValue) => {
     if (!moveValue) return 0;
@@ -94,6 +97,7 @@ function App() {
       move: newMove,
       tmm: parseInt(newTMM) || 0,
       damage: { ...newDmg },
+      abilities: newAbilities,
       currentCard: null
     });
     setMechs(updatedMechs);
@@ -102,6 +106,7 @@ function App() {
     setNewMove('');
     setNewTMM(0);
     setNewDmg({ S: '0', M: '0', L: '0' });
+    setNewAbilities('');
   };
 
   const removeMech = (id) => {
@@ -236,6 +241,62 @@ function App() {
     setDraggedIndex(null);
   };
 
+  const findAbilityRule = (mechAbility) => {
+    if (!mechAbility) return null;
+    const ability = mechAbility.trim();
+    
+    // 1. Exact match
+    let found = specialDB.find(s => s.abbreviation.toLowerCase() === ability.toLowerCase());
+    if (found) return found;
+
+    // 2. Prefix match
+    const match = ability.match(/^([A-Za-z\-]+)/);
+    if (match) {
+      const prefix = match[1].toLowerCase();
+      const candidates = specialDB.filter(s => s.abbreviation.toLowerCase().startsWith(prefix));
+      
+      for(let c of candidates) {
+          let patternStr = c.abbreviation
+             .replace(/[.#*+?^${}()|[\]\\]/g, '\\$&') // escape special characters
+             .replace(/X/g, '(\\d+|-)')
+             .replace(/\\#/g, '\\d+');
+          const regex = new RegExp('^' + patternStr + '$', 'i');
+          if (regex.test(ability)) return c;
+      }
+      if (candidates.length > 0) return candidates[0];
+    }
+    return null;
+  };
+
+  const showAbilityInfo = (abilityName) => {
+    const rule = findAbilityRule(abilityName);
+    if (rule) {
+      setSelectedAbility({ original: abilityName, ...rule });
+    } else {
+      setSelectedAbility({ original: abilityName, ability: abilityName, summary: "No se encontró regla en la base de datos.", rules: "" });
+    }
+  };
+
+  const renderAbilities = (mech) => {
+    if (!mech.abilities) return null;
+    const abilitiesList = mech.abilities.split(',').map(a => a.trim()).filter(a => a);
+    if (abilitiesList.length === 0) return null;
+    return (
+      <div className="mech-abilities-list">
+         {abilitiesList.map((ab, i) => (
+            <span 
+               key={i} 
+               className="ability-tag" 
+               onClick={(e) => { e.stopPropagation(); showAbilityInfo(ab); }}
+               title="Ver regla"
+            >
+               {ab}
+            </span>
+         ))}
+      </div>
+    );
+  };
+
   return (
     <div className={`app-container phase-${currentPhase}`}>
       <header>
@@ -322,6 +383,7 @@ function App() {
                         setNewOV(found.overheat || 0);
                         handleMoveChange(found.move || '');
                         setNewDmg(found.damage || { S: '0', M: '0', L: '0' });
+                        setNewAbilities(found.abilities || '');
                         const roleLower = (found.role || '').toLowerCase();
                         const matchType = MECH_TYPES.find(t => t.toLowerCase() === roleLower) || MECH_TYPES.find(t => t.toLowerCase().startsWith(roleLower));
                         if (matchType) {
@@ -432,6 +494,7 @@ function App() {
                           <span className="stat-badge" title="Damage: Corto / Medio / Largo">DMG: {m.damage?.S||'0'} / {m.damage?.M||'0'} / {m.damage?.L||'0'}</span>
                           <span className="stat-badge">Heat: {m.heat || 0}/4</span>
                         </div>
+                        {renderAbilities(m)}
                       </div>
                       <div className={`card-display-sidebar ${currentPhase}`}>
                         {m.currentCard && <img src={m.currentCard} alt="Mech Header" />}
@@ -460,6 +523,7 @@ function App() {
                             )}
                           </div>
                         </div>
+                        {renderAbilities(mechs[activeMechIndex])}
                       </div>
                       <div className={`card-display-principal ${currentPhase}`}>
                         {mechs[activeMechIndex]?.currentCard && (
@@ -568,6 +632,7 @@ function App() {
                             )}
                           </div>
                         </div>
+                        {renderAbilities(mech)}
                       </div>
 
                       <div className="mech-actions">
@@ -612,6 +677,18 @@ function App() {
           </div>
         </div>
       </main>
+
+      {selectedAbility && (
+        <div className="ability-modal-overlay" onClick={() => setSelectedAbility(null)}>
+          <div className="ability-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="close-modal" onClick={() => setSelectedAbility(null)}>✕</button>
+            <h3>{selectedAbility.original}</h3>
+            <h4>{selectedAbility.ability}</h4>
+            {selectedAbility.summary && <p className="ability-summary"><strong>Resumen:</strong> {selectedAbility.summary}</p>}
+            {selectedAbility.rules && <p className="ability-rules"><strong>Reglas:</strong> {selectedAbility.rules}</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
