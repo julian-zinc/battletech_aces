@@ -48984,6 +48984,45 @@
     "abilities": "CASE, FLK1/1/1, MEL"
   },
   {
+    "name": "Light Emplacement (3x AC/2)",
+    "overheat": 0,
+    "role": "None",
+    "move": "0",
+    "imagelink": "",
+    "damage": {
+      "S": "0*",
+      "M": "1",
+      "L": "1"
+    },
+    "abilities": "CF: 3, INMOBILE"
+  },
+  {
+    "name": "Medium Emplacement (2x AC/5)",
+    "overheat": 0,
+    "role": "None",
+    "move": "0",
+    "imagelink": "",
+    "damage": {
+      "S": "1",
+      "M": "1",
+      "L": "1"
+    },
+    "abilities": "CF: 4, AC1/1/1, INMOBILE"
+  },
+  {
+    "name": "Heavy Emplacement (AC/20)",
+    "overheat": 0,
+    "role": "None",
+    "move": "0",
+    "imagelink": "",
+    "damage": {
+      "S": "2",
+      "M": "2",
+      "L": "0"
+    },
+    "abilities": "CF: 6, AC2/0/0, INMOBILE"
+  },
+  {
     "name": "Heavy Strike Fighter Bat Hawk",
     "overheat": 0,
     "role": "Attack",

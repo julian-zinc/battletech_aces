@@ -21,7 +21,7 @@ body {
   color: var(--text-main);
   font-family: var(--font-family);
   min-height: 100vh;
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
 }
@@ -181,7 +181,8 @@ header {
   color: var(--text-muted);
 }
 
-input, select {
+input,
+select {
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid var(--glass-border);
   color: white;
@@ -207,7 +208,8 @@ main {
 }
 
 .content-area {
-  min-width: 0; /* Prevents grid breakout */
+  min-width: 0;
+  /* Prevents grid breakout */
 }
 
 .mechs-grid {
@@ -216,7 +218,8 @@ main {
   gap: 1.5rem;
 }
 
-.mechs-grid.iniciativa, .mechs-grid.iniciativa-combate {
+.mechs-grid.iniciativa,
+.mechs-grid.iniciativa-combate {
   grid-template-columns: 1fr;
   max-width: 600px;
   margin: 0 auto;
@@ -234,7 +237,8 @@ main {
   transition: all 0.3s;
 }
 
-.mech-card-view.iniciativa, .mech-card-view.iniciativa-combate {
+.mech-card-view.iniciativa,
+.mech-card-view.iniciativa-combate {
   padding: 0.75rem 1.25rem;
   cursor: grab;
 }
@@ -243,14 +247,15 @@ main {
   padding: 1rem 1.25rem;
 }
 
-.mech-card-view.iniciativa:active, .mech-card-view.iniciativa-combate:active {
+.mech-card-view.iniciativa:active,
+.mech-card-view.iniciativa-combate:active {
   cursor: grabbing;
   border-color: var(--primary);
   transform: scale(0.98);
 }
 
 .mech-card-view.mantenimiento .mech-header,
-.mech-card-view.iniciativa .mech-header, 
+.mech-card-view.iniciativa .mech-header,
 .mech-card-view.iniciativa-combate .mech-header {
   display: flex;
   flex-direction: row;
@@ -307,14 +312,16 @@ main {
 }
 
 .card-display-iniciativa {
-  aspect-ratio: 2.5/0.35; /* 10% of 3.5 height */
+  aspect-ratio: 2.5/0.35;
+  /* 10% of 3.5 height */
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid var(--glass-border);
 }
 
 .card-display-iniciativa-combate {
-  aspect-ratio: 2.5/0.35; /* 10% slice */
+  aspect-ratio: 2.5/0.35;
+  /* 10% slice */
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid var(--glass-border);
@@ -322,7 +329,8 @@ main {
 
 .card-display-iniciativa-combate img {
   width: 100%;
-  transform: translateY(-50%); /* Starts at 50% height */
+  transform: translateY(-50%);
+  /* Starts at 50% height */
 }
 
 /* Compact Initiative Layout Overrides */
@@ -353,7 +361,7 @@ main {
   color: var(--text-muted);
   padding: 2rem;
   text-align: center;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
 
@@ -454,10 +462,11 @@ main {
 
 /* Intermediate: List on top, Mech and Commander side-by-side */
 @media (max-width: 1600px) {
+
   .phase-movimiento main,
   .phase-combate main {
     grid-template-columns: 1fr 560px;
-    grid-template-areas: 
+    grid-template-areas:
       "sidebar sidebar"
       "mech commander";
   }
@@ -479,10 +488,11 @@ main {
 
 /* Narrow: Vertical stack */
 @media (max-width: 1100px) {
+
   .phase-movimiento main,
   .phase-combate main {
     grid-template-columns: 1fr;
-    grid-template-areas: 
+    grid-template-areas:
       "sidebar"
       "mech"
       "commander";
@@ -509,6 +519,7 @@ main {
 /* Initiative and Initiative Combat responsive stacking */
 /* Space needed: 600px list + 560px commander + 2rem gap = ~1192px + 4rem main padding = ~1256px */
 @media (max-width: 1260px) {
+
   .phase-iniciativa main,
   .phase-iniciativa-combate main {
     grid-template-columns: 1fr;
@@ -626,14 +637,15 @@ main {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  box-shadow: 0 0 40px rgba(0,0,0,0.4);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
 }
 
 .card-display-principal {
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid var(--glass-border);
-  aspect-ratio: 2.5/1.75; /* 50% height */
+  aspect-ratio: 2.5/1.75;
+  /* 50% height */
 }
 
 .card-display-principal.movimiento img {
@@ -642,14 +654,27 @@ main {
 
 .card-display-principal.combate img {
   width: 100%;
-  transform: translateY(-50%); /* Show bottom half */
+  transform: translateY(-50%);
+  /* Show bottom half */
+}
+
+/* None role special combat card: Right half of commander card, bottom slice */
+.card-display-principal.combate.role-none {
+  overflow: hidden;
+}
+
+.none-role-combat-card {
+  width: 200% !important;
+  height: 200% !important;
+  margin-left: -100%;
+  margin-top: 55%;
 }
 
 .movement-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   padding: 1rem;
   border-radius: 12px;
 }
@@ -682,7 +707,7 @@ main {
 }
 
 .secondary-btn {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -746,7 +771,9 @@ main {
 }
 
 /* Stats and Heat Controls */
-.sidebar-stats, .principal-stats, .grid-stats {
+.sidebar-stats,
+.principal-stats,
+.grid-stats {
   display: flex;
   gap: 0.5rem;
   align-items: center;
@@ -776,7 +803,8 @@ main {
 }
 
 .stat-modified {
-  color: #ff4500 !important; /* Orangered for emphasis */
+  color: #ff4500 !important;
+  /* Orangered for emphasis */
   font-weight: 900 !important;
   font-size: 0.85rem !important;
   border-color: #ff4500 !important;
@@ -803,13 +831,13 @@ main {
 .inline-edit-group input {
   padding: 0.15rem 0.35rem;
   border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   font-size: 0.8rem;
 }
 
 .inline-edit-group input:focus {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-color: var(--primary);
 }
 
