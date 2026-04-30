@@ -762,6 +762,25 @@ main {
   font-weight: 700;
   color: var(--text-main);
   border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.base-stat-hint {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: normal;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.stat-modified {
+  color: #ff4500 !important; /* Orangered for emphasis */
+  font-weight: 900 !important;
+  font-size: 0.85rem !important;
+  border-color: #ff4500 !important;
+  box-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
 }
 
 .inline-edit-group {

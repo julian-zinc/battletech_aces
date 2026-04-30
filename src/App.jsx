@@ -46,17 +46,50 @@ function App() {
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [selectedAbility, setSelectedAbility] = useState(null);
 
-  const calculateTMM = (moveValue) => {
-    if (!moveValue) return 0;
-    const moveStr = moveValue.toString().toLowerCase();
-    if (moveStr.includes('a')) return 0;
-    const num = parseInt(moveStr) || 0;
+  const calculateSingleTMM = (moveStr) => {
+    if (!moveStr) return 0;
+    const cleanStr = moveStr.toString().toLowerCase();
+    if (cleanStr.includes('a')) return 0;
+    const num = parseInt(cleanStr) || 0;
     if (num >= 36) return 5;
     if (num >= 20 && num <= 35) return 4;
     if (num >= 14 && num <= 19) return 3;
     if (num >= 10 && num <= 13) return 2;
     if (num >= 6 && num <= 9) return 1;
     return 0;
+  };
+
+  const calculateTMM = (moveValue) => {
+    if (!moveValue) return 0;
+    const moveStr = moveValue.toString();
+    if (moveStr.includes('/')) {
+      const parts = moveStr.split('/');
+      const tmmParts = parts.map(p => calculateSingleTMM(p));
+      if (tmmParts[0] === tmmParts[1]) return tmmParts[0];
+      return tmmParts.join('/');
+    }
+    return calculateSingleTMM(moveStr);
+  };
+
+  const calculateAdjustedMove = (moveStr, heat) => {
+    if (!moveStr) return moveStr;
+    const heatLevel = parseInt(heat) || 0;
+    if (heatLevel === 0) return moveStr;
+    
+    const penalty = heatLevel * 2;
+    const parts = moveStr.toString().split('/');
+    const adjustedParts = parts.map(part => {
+      const match = part.match(/^(\d+)(.*)$/);
+      if (!match) return part;
+      const num = parseInt(match[1]);
+      const suffix = match[2];
+      if (suffix.toLowerCase().includes('j')) {
+        return part; // No penalty for jump
+      }
+      const newVal = Math.max(0, num - penalty);
+      return `${newVal}${suffix}`;
+    });
+    return adjustedParts.join('/');
   };
 
   const handleMoveChange = (val) => {
@@ -515,11 +548,21 @@ function App() {
                         <span className="mech-type">{mechs[activeMechIndex]?.type}</span>
                         <div className="principal-stats">
                           <span className="stat-badge">OV: {mechs[activeMechIndex]?.ov || 0}</span>
-                          <span className="stat-badge">Move: {mechs[activeMechIndex]?.move || '-'}</span>
-                          <span className="stat-badge">TMM: {mechs[activeMechIndex]?.tmm ?? '-'}</span>
+                          <span className={`stat-badge ${mechs[activeMechIndex]?.heat > 0 && mechs[activeMechIndex]?.move !== calculateAdjustedMove(mechs[activeMechIndex]?.move, mechs[activeMechIndex]?.heat) ? 'stat-modified' : ''}`}>
+                            Move: {calculateAdjustedMove(mechs[activeMechIndex]?.move, mechs[activeMechIndex]?.heat) || '-'}
+                            {mechs[activeMechIndex]?.heat > 0 && mechs[activeMechIndex]?.move !== calculateAdjustedMove(mechs[activeMechIndex]?.move, mechs[activeMechIndex]?.heat) && (
+                              <span className="base-stat-hint"> ({mechs[activeMechIndex]?.move})</span>
+                            )}
+                          </span>
+                          <span className={`stat-badge ${mechs[activeMechIndex]?.heat > 0 && mechs[activeMechIndex]?.tmm !== calculateTMM(calculateAdjustedMove(mechs[activeMechIndex]?.move, mechs[activeMechIndex]?.heat)) ? 'stat-modified' : ''}`}>
+                            TMM: {calculateTMM(calculateAdjustedMove(mechs[activeMechIndex]?.move, mechs[activeMechIndex]?.heat)) ?? '-'}
+                            {mechs[activeMechIndex]?.heat > 0 && mechs[activeMechIndex]?.tmm !== calculateTMM(calculateAdjustedMove(mechs[activeMechIndex]?.move, mechs[activeMechIndex]?.heat)) && (
+                              <span className="base-stat-hint"> ({mechs[activeMechIndex]?.tmm})</span>
+                            )}
+                          </span>
                           <span className="stat-badge" title="Damage: Corto / Medio / Largo">DMG: {mechs[activeMechIndex]?.damage?.S||'0'} / {mechs[activeMechIndex]?.damage?.M||'0'} / {mechs[activeMechIndex]?.damage?.L||'0'}</span>
                           <div className="heat-control-container">
-                            <span className="stat-badge">Heat: {mechs[activeMechIndex]?.heat || 0}/4</span>
+                            <span className={`stat-badge ${mechs[activeMechIndex]?.heat > 0 ? 'stat-modified' : ''}`}>Heat: {mechs[activeMechIndex]?.heat || 0}/4</span>
                             {currentPhase === 'combate' && (
                               <div className="heat-controls-mini">
                                 <button onClick={() => adjustHeat(mechs[activeMechIndex].id, -1)} disabled={(mechs[activeMechIndex]?.heat || 0) <= 0}>-</button>
@@ -616,10 +659,16 @@ function App() {
                               <div className="inline-edit-group">
                                 <label>Move</label>
                                 <input type="text" value={mech.move || ''} onChange={(e) => updateMech(mech.id, 'move', e.target.value)} style={{width: '50px'}} />
+                                {mech.heat > 0 && mech.move !== calculateAdjustedMove(mech.move, mech.heat) && (
+                                  <span className="base-stat-hint stat-modified" title="Adjusted Move" style={{padding: '2px 4px', borderRadius: '4px'}}>{calculateAdjustedMove(mech.move, mech.heat)}</span>
+                                )}
                               </div>
                               <div className="inline-edit-group">
                                 <label>TMM</label>
                                 <input type="number" value={mech.tmm || 0} onChange={(e) => updateMech(mech.id, 'tmm', parseInt(e.target.value) || 0)} style={{width: '50px'}} />
+                                {mech.heat > 0 && mech.tmm !== calculateTMM(calculateAdjustedMove(mech.move, mech.heat)) && (
+                                  <span className="base-stat-hint stat-modified" title="Adjusted TMM" style={{padding: '2px 4px', borderRadius: '4px'}}>{calculateTMM(calculateAdjustedMove(mech.move, mech.heat))}</span>
+                                )}
                               </div>
                               <div className="inline-edit-group" style={{padding: '0.15rem 0.25rem', gap: '0.1rem'}}>
                                 <label style={{marginRight: '0.2rem'}}>DMG</label>
@@ -628,7 +677,7 @@ function App() {
                                 <input type="text" value={mech.damage?.L || '0'} onChange={(e) => updateMechDmg(mech.id, 'L', e.target.value)} style={{width: '35px', textAlign: 'center', padding: '0.15rem'}} title="L" />
                               </div>
                               <div className="heat-control-container">
-                                <span className="stat-badge">Heat: {mech.heat || 0}/4</span>
+                                <span className={`stat-badge ${mech.heat > 0 ? 'stat-modified' : ''}`}>Heat: {mech.heat || 0}/4</span>
                                 <div className="heat-controls-mini">
                                   <button onClick={() => adjustHeat(mech.id, -1)} disabled={(mech.heat || 0) <= 0}>-</button>
                                   <button onClick={() => adjustHeat(mech.id, 1)} disabled={(mech.heat || 0) >= 4}>+</button>
