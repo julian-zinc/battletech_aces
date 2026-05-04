@@ -75,6 +75,40 @@ header {
   gap: 0.5rem;
 }
 
+/* Section Navigation */
+.section-nav {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+}
+
+.section-tab {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 0.4rem 1.2rem;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+}
+
+.section-tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.section-tab.active {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+}
+
 /* Phase Controls */
 .phase-controls {
   display: flex;
@@ -205,6 +239,63 @@ main {
   grid-template-columns: 1fr 560px;
   gap: 2rem;
   align-items: start;
+}
+
+.campana-main {
+  grid-template-columns: 1fr;
+  display: block !important;
+  padding: 0;
+}
+
+.campaign-container {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 4rem;
+}
+
+.campaign-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.campaign-card h2 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  background: linear-gradient(to right, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.campaign-card p {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.campaign-input-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.campaign-input-group input {
+  flex: 1;
+  max-width: 300px;
+  font-size: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.campaign-input-group button {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
 }
 
 .content-area {
@@ -877,5 +968,544 @@ main {
   cursor: not-allowed;
   border-color: var(--glass-border);
   color: var(--text-muted);
+}
+
+/* Campaign Detail View */
+.campaign-detail-view {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  height: auto;
+  min-height: calc(100vh - 150px);
+}
+
+.campaign-column {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  height: fit-content;
+  min-height: 400px;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.column-header h3 {
+  font-size: 0.9rem;
+  letter-spacing: 0.1rem;
+  color: var(--primary);
+  margin: 0;
+}
+
+.add-btn-mini {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-btn-mini:hover {
+  background: var(--primary);
+  color: #000;
+}
+
+.mission-list, .mech-campaign-list, .pilot-list, .memorial-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-right: 4px;
+}
+
+/* Custom Scrollbar for lists */
+.mission-list::-webkit-scrollbar, 
+.mech-campaign-list::-webkit-scrollbar, 
+.pilot-list::-webkit-scrollbar, 
+.memorial-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.mission-list::-webkit-scrollbar-thumb, 
+.mech-campaign-list::-webkit-scrollbar-thumb, 
+.pilot-list::-webkit-scrollbar-thumb, 
+.memorial-list::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+}
+
+.empty-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 2rem;
+  font-style: italic;
+}
+
+/* Mission Card */
+.mission-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mission-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+}
+
+.mission-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.mission-number {
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 0.75rem;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.mission-name {
+  color: var(--text-main);
+  font-weight: 600;
+  flex: 1;
+  margin-left: 0.75rem;
+}
+
+.mission-sub-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.victory { color: #10b981; font-weight: bold; }
+.defeat { color: #ef4444; font-weight: bold; }
+
+/* Mech Campaign Card */
+.mech-campaign-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mech-name {
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.mech-pv {
+  color: var(--primary);
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+.delete-btn-mini {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.delete-btn-mini:hover {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+}
+
+/* Pilot Card */
+.pilot-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pilot-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+}
+
+.pilot-card.dead {
+  opacity: 0.5;
+  border-style: dashed;
+  filter: grayscale(1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.pilot-name {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pilot-sp {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.memorial-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.memorial-section h4 {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: #111;
+  border: 1px solid var(--primary);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(245, 158, 11, 0.1);
+}
+
+.modal-content h3 {
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-grid input, .form-grid textarea, .form-grid select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  padding: 0.85rem;
+  border-radius: 10px;
+  color: white;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.form-grid textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-grid input:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.75rem;
+  border-radius: 10px;
+}
+
+.checkbox-group label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.modal-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.modal-actions button:not(.btn-danger) {
+  background: var(--primary);
+  color: #000;
+  border: none;
+}
+
+.modal-actions button:not(.btn-danger):hover {
+  background: #fbbf24;
+  transform: translateY(-1px);
+}
+
+.modal-actions button:nth-of-type(1):not(.btn-danger) {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid var(--glass-border);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid #ef4444 !important;
+}
+
+.btn-danger:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.add-mech-campaign {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.add-mech-campaign input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.add-mech-campaign input[type="text"] { flex: 1; }
+.add-mech-campaign input[type="number"] { width: 65px; }
+
+/* Campaign Header */
+.campaign-detail-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+
+.campaign-detail-header h2 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin: 0;
+}
+
+.campaign-id-badge {
+  background: var(--primary);
+  color: #000;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-weight: 800;
+  font-family: monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.05rem;
+}
+
+.header-campaign-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.exit-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ef4444;
+  padding: 0.4rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exit-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+@media (max-width: 1100px) {
+  .campaign-detail-view {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+}
+
+/* Modal Expansion for Calculator */
+.modal-mission-calc {
+  width: 95%;
+  max-width: 900px;
+}
+
+.mission-calc-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.calc-main-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.flex-1 { flex: 1; }
+
+.calc-sections {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 2rem;
+}
+
+.calc-group {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.calc-group h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.1rem;
+  color: var(--text-muted);
+}
+
+.calc-group label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.expenses-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.calc-subtotal {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--glass-border);
+  text-align: right;
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.calc-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(245, 158, 11, 0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.final-balance-badge {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.mission-details-area {
+  min-height: 100px;
+  background: rgba(255, 255, 255, 0.03);
+  resize: vertical;
+}
+
+@media (max-width: 800px) {
+  .calc-sections {
+    grid-template-columns: 1fr;
+  }
 }
 

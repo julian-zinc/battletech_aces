@@ -1,0 +1,392 @@
+[
+  {
+    "abbreviation": "ABA",
+    "ability": "Anti-Penetrative Ablation Armor",
+    "summary": "A unit with protection against taser weapons",
+    "rules": "A unit protected by anti-penetrative ablation armor—often simply called ablative armor—is resistant to specialty munitions designed to pierce most other armor types A unit with this special ignores attacks by taser weapons (MTAS# and BTAS# specials), and negates the bonus critical hit check made for attacks that use armor-penetrating ammunition and tandem-charge missile munitions (see p 143)"
+  },
+  {
+    "abbreviation": "ARTBA-1",
+    "ability": "Artillery",
+    "summary": "Element has an artillery attack",
+    "rules": "This special ability lets an Element make an artillery attack. Record each type of artillery separately. If an Element has multiple artillery weapons, include the number ofeach. For example, an Element with two Long Toms would record this ability as ARTLT-2. Refer to the Artillery Abbreviations Table, on page 344 (see the Bomb (BOMB#) special ability, p. 346, for Arrow-IV missiles as bombs)."
+  },
+  {
+    "abbreviation": "BIM(3a)",
+    "ability": "Bimodal Land-Air Battlemech",
+    "summary": "A Battlemech that can converto into aerospace fighter",
+    "rules": "A BattleMech with this special has been built to convert between BattleMech and aerospace fighter modes of operation The rules for Land-Air BattleMechs (LAMs), may be found on page 177"
+  },
+  {
+    "abbreviation": "BIM(4a)",
+    "ability": "Bimodal Land-Air Battlemech",
+    "summary": "A Battlemech that can converto into aerospace fighter",
+    "rules": "A BattleMech with this special has been built to convert between BattleMech and aerospace fighter modes of operation The rules for Land-Air BattleMechs (LAMs), may be found on page 177"
+  },
+  {
+    "abbreviation": "BRA",
+    "ability": "Ballistic-Reinforced Armor",
+    "summary": "Ballistic-Reinforced Armor",
+    "rules": "A specialty armor developed to counter projectile weapons and missiles, ballistic-reinforced armor reduces all damage delivered by attackers that make use of the AC, IATM, IF, LRM, or SRM specials, by half (rounding up) This reduction is applied whether the attack is delivered using the unit’s normal damage values, or by just the listed special abilities.<p>Thus, if a unit that delivers normal attack values of 5/4/2, with an AC2/2/0 special, delivers a successful normal attack against a unit with the BRA special at Short range, the attack will be reduced by 3 points (half the damage value at Short range, rounded up), dropping the normal total of 5 points to 2 If the same unit makes a special AC weapon attack against a unit with the BRA special at Medium range, the attack will be reduced by 1 point (half the AC special ability’s Medium range), dropping the AC total of 2 points to 1.<p>Though similar to reactive armor in many ways, ballistic reinforced armor will not reduce damage from attacks made using the ART, BOMB, MSL, or FLK specials"
+  },
+  {
+    "abbreviation": "BTAS1",
+    "ability": "Taser",
+    "summary": "Taser",
+    "rules": "A unit with the MTAS# special is carrying a ’Mech Taser; a unit with the BTAS# special carries a battle armor Taser For MTAS special abilities, the # in this special indicates the quantity of Taser weapons mounted by the unit in question, each of which may attempt one attack per turn against any targets that lie in the unit’s firing arc and within its Short range bracket For BTAS special abilities, the # in this special represents the maximum number of Taser attacks the unit can make for the entire scenario<p>All Taser attacks are resolved separately, and may be made in addition to the unit’s normal weapon or physical attacks The Taser attack itself delivers no damage, but a successful hit will cause either interference or shutdown any target that is not conventional infantry, a DropShip, or possesses the LG, VLG, or SLG ability Conventional infantry, DropShips, and units with the LG, VLG, or SLG abilities ignore the Taser effects entirely<p>When a Taser attack hits a target that can be affected by it, the attacker rolls 2D6, applying a –2 if using a BTAS special, a –2 if the target is a BattleMech, and a +2 modifier if the target is battle armor infantry On an 8+, the target is shut down for 1 turn On a 7 or less, the target suffers interference effects that apply a +1 Target Number modifier to all of its attack and Control rolls the unit makes for 1 turn (additional Taser hits do not add to this effect) Taser effects wear off in the End Phase of the turn after a Taser’s successful attack"
+  },
+  {
+    "abbreviation": "BTAS2",
+    "ability": "Taser",
+    "summary": "Taser",
+    "rules": "A unit with the MTAS# special is carrying a ’Mech Taser; a unit with the BTAS# special carries a battle armor Taser For MTAS special abilities, the # in this special indicates the quantity of Taser weapons mounted by the unit in question, each of which may attempt one attack per turn against any targets that lie in the unit’s firing arc and within its Short range bracket For BTAS special abilities, the # in this special represents the maximum number of Taser attacks the unit can make for the entire scenario<p>All Taser attacks are resolved separately, and may be made in addition to the unit’s normal weapon or physical attacks The Taser attack itself delivers no damage, but a successful hit will cause either interference or shutdown any target that is not conventional infantry, a DropShip, or possesses the LG, VLG, or SLG ability Conventional infantry, DropShips, and units with the LG, VLG, or SLG abilities ignore the Taser effects entirely<p>When a Taser attack hits a target that can be affected by it, the attacker rolls 2D6, applying a –2 if using a BTAS special, a –2 if the target is a BattleMech, and a +2 modifier if the target is battle armor infantry On an 8+, the target is shut down for 1 turn On a 7 or less, the target suffers interference effects that apply a +1 Target Number modifier to all of its attack and Control rolls the unit makes for 1 turn (additional Taser hits do not add to this effect) Taser effects wear off in the End Phase of the turn after a Taser’s successful attack"
+  },
+  {
+    "abbreviation": "CASEII",
+    "ability": "Cellular Ammunition Storage Equipment II",
+    "summary": "Cellular Ammunition Storage Equipment II",
+    "rules": "Units with this ability have superior protection against ammunition explosions and can ignore Ammo Hit critical hits (see Ammo Hit, p 50)"
+  },
+  {
+    "abbreviation": "CNARC",
+    "ability": "NARC Missile Beacon",
+    "summary": "NARC Missile Beacon",
+    "rules": "A unit with the CNARC# or SNARC# special ability may make an extra weapon attack using its Narc missile beacon device A unit hit by a Narc beacon will not suffer damage from the Narc itself, but will suffer 1 additional point of damage from any Indirect Fire (IF), LRM, or SRM attacks for the rest of the game—unless the unit is within a friendly ECM bubble Standard Narc beacon launchers (indicated by SNARC) have a maximum range of Medium, while Compact Narc beacon launchers (CNARC) have a maximum range of Short<p>Instead of their normal attack, Narc launchers may fire specialty ammo (see Alternate Munitions, p 143)<p>The numerical value of this ability indicates the number of extra Narc beacon attacks the unit can deliver in a single turn"
+  },
+  {
+    "abbreviation": "DDC1",
+    "ability": "Drone Carrier Control System",
+    "summary": "Drone Carrier Control System",
+    "rules": "Units with the drone carrier control system (DCC) special ability may control units with the drone (DRO) special The numerical value of this ability indicates the number of drones the unit can control All drones controlled by this unit will shut down if the control unit is destroyed, disabled, or enveloped in hostile ECM fields"
+  },
+  {
+    "abbreviation": "DN",
+    "ability": "Direct Neural Control System",
+    "summary": "Direct Neural Control System",
+    "rules": "A unit controlled with a direct neural control system is designed to be piloted by warriors fitted with an advanced cybernetic brain implant, enabling more enhanced control This technology is exceedingly rare and dangerous in the BattleTech setting, with its use invariably leading to madness and death in less than a decade or so Developed only in the wake of the Clan Invasion, it was almost exclusively limited to the fanatics of the Word of Blake faction, even though other groups researched their own versions<p>If a warrior or crew controlling a unit with this special ability is not fitted with a DNI implant—including the prototype DNI, vehicular DNI, or buffered VDNI implants (see Augmented Warriors, p 140)—the control system provides no benefits or drawbacks at all Otherwise, the use of this feature applies a –1 modifier to the pilot’s Skill Rating, so a unit with a Skill Rating of 2 will drop to 1 However, any Fire Control critical hit the unit receives during a scenario will result in a Crew Stunned effect to the unit (regardless of the unit’s type) If this happens to an aerospace unit treat the stunned unit as if it has shut down"
+  },
+  {
+    "abbreviation": "DUN",
+    "ability": "Dune Buggy",
+    "summary": "Dune Buggy",
+    "rules": "A unit with this special ability can move more easily over Sand (see Advanced Terrain, p 136)"
+  },
+  {
+    "abbreviation": "ECS",
+    "ability": "Risc Emergency Coolant System",
+    "summary": "Risc Emergency Coolant System",
+    "rules": "The RISC emergency coolant system is a more powerful variation on the radical heat sink system (RHS special), but its effects in the event of a system failure can be much more dire Like the RHS special, this system is activated in the End Phase of the turn, but will only do so if the unit has reached a Heat Scale of 4 (Shutdown) Also like the RHS, the system requires a 1D6 check to determine if it suffers a failure when attempting to flush coolant through its unit If the 1D6 roll result is 2 or higher, the ECS reduces the unit’s Heat Scale by 2 points If the result of the 1D6 roll is 1, the ECS special must be marked off and, just like the RHS, it will fail to reduce the unit’s heat level In addition to this, the ECS’s failure will also inflict one Engine Hit critical on the unit itself The ECS remains inoperable for the remainder of the scenario once it is marked off"
+  },
+  {
+    "abbreviation": "FC",
+    "ability": "Elementary Engine or Fuel Cell Engine",
+    "summary": "Elementary Engine or Fuel Cell Engine",
+    "rules": "Units with EE or FC specials use non-fusion engines for power and must have the SEAL special to operate underwater Units with elementary engines (EE) may not operate in a vacuum, but units that have both fuel cell engines (FC) and the SEAL special may operate normally in a vacuum<p>Heat-tracking units that use either of these engine types will suffer no heat buildup from an Engine Hit critical effect Instead, for every turn after receiving an Engine Hit critical, if the unit makes a weapon attack, its controlling player must roll 2D6 in the End Phase of that game turn On a roll of 12, the unit explodes and is destroyed"
+  },
+  {
+    "abbreviation": "GLD",
+    "ability": "Glider Protomech",
+    "summary": "Glider Protomech",
+    "rules": "A ProtoMech unit with this special ability has been built with a special low-level flight capability similar to a Wing-in-Ground Effect vehicle Rules for using Glider ProtoMechs in game play may be found on page 177"
+  },
+  {
+    "abbreviation": "HTC",
+    "ability": "Trailer Hitch",
+    "summary": "Trailer Hitch",
+    "rules": "A vehicle unit with this special has the ability to tow other wheeled or tracked units and trailers The rules for towing may be found under External Cargo, page 163"
+  },
+  {
+    "abbreviation": "IATM10/7/4",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IATM14/10/5",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IATM2/1/1",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IATM3/2/1",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IATM4/2/1",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IATM4/2/2",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IATM5/4/2",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IATM7/5/2",
+    "ability": "Improved ATM",
+    "summary": "Improved ATM",
+    "rules": "Units with the IATM#/#/# special may conduct missile attacks using Improved ATM munitions These alternate munitions are:<p>Indirect Fire: This represents an IATM firing standard longrange missiles, which enables the unit to execute an attack as if it has an IF value equivalent to its IATM Long-range value (i e , an IATM2/2/2 special can also act as an IF2 special)<p>Magnetic Pulse: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at Short range But if this attack hits a target in the Short range bracket, the target suffers a loss of 2 inches of Move, as well as a –1 Target Number modifier for all weapon attacks, throughout the following turn (Multiple magnetic pulse hits will not stack these modifiers )<p>Improved Inferno: Using this alternate munition attack, the unit’s normal attack is reduced by 1 point at both Short and Medium range But if this attack hits a target in those range brackets, the target also suffers the effects of a HT#/#/# special attack equal to the numerical value of the unit’s IATM#/#/# special at those ranges, to a maximum of 2 points at any range bracket (i e , IATM3/1/- will transate to a HT2/1/- effect)"
+  },
+  {
+    "abbreviation": "IRA",
+    "ability": "Impact-Resistant Armor",
+    "summary": "Impact-Resistant Armor",
+    "rules": "Originally developed for use in dueling arenas, where melee attacks are often as common as weapons fire, impact-resistant armor provides increased protection in physical combat When a unit with this special sustains damage as a result of a physical attack (including those delivered using a MEL special, or self-inflicted damage from a Death from Above attack), the damage sustained by the unit is reduced by 1 point, to a minimum of 1 point<p>In addition to this, all critical hit rolls and hull breach checks made against this unit apply a +1 modifier to the roll result For critical hits, treat any modified result over 12 as an Engine Hit critical"
+  },
+  {
+    "abbreviation": "JMPS1",
+    "ability": "Jump Jets, weak or Strong",
+    "summary": "Jump Jets, weak or Strong",
+    "rules": "This unit has particularly underpowered, weak jump jets or overpowered, strong jump jets compared to their non-jump movement Weak Jump Jets subtract the # from their TMM when using Jumping movement Strong Jump Jets add the # to their TMM when using Jumping movement"
+  },
+  {
+    "abbreviation": "JMPS2",
+    "ability": "Jump Jets, weak or Strong",
+    "summary": "Jump Jets, weak or Strong",
+    "rules": "This unit has particularly underpowered, weak jump jets or overpowered, strong jump jets compared to their non-jump movement Weak Jump Jets subtract the # from their TMM when using Jumping movement Strong Jump Jets add the # to their TMM when using Jumping movement"
+  },
+  {
+    "abbreviation": "JMPW1",
+    "ability": "Jump Jets, weak or Strong",
+    "summary": "Jump Jets, weak or Strong",
+    "rules": "This unit has particularly underpowered, weak jump jets or overpowered, strong jump jets compared to their non-jump movement Weak Jump Jets subtract the # from their TMM when using Jumping movement Strong Jump Jets add the # to their TMM when using Jumping movement"
+  },
+  {
+    "abbreviation": "JMPW2",
+    "ability": "Jump Jets, weak or Strong",
+    "summary": "Jump Jets, weak or Strong",
+    "rules": "This unit has particularly underpowered, weak jump jets or overpowered, strong jump jets compared to their non-jump movement Weak Jump Jets subtract the # from their TMM when using Jumping movement Strong Jump Jets add the # to their TMM when using Jumping movement"
+  },
+  {
+    "abbreviation": "JMPW3",
+    "ability": "Jump Jets, weak or Strong",
+    "summary": "Jump Jets, weak or Strong",
+    "rules": "This unit has particularly underpowered, weak jump jets or overpowered, strong jump jets compared to their non-jump movement Weak Jump Jets subtract the # from their TMM when using Jumping movement Strong Jump Jets add the # to their TMM when using Jumping movement"
+  },
+  {
+    "abbreviation": "LAM(24g/4a)",
+    "ability": "Land-Air Battlemech",
+    "summary": "Land-Air Battlemech",
+    "rules": "A BattleMech with this special has been built to convert between BattleMech, AirMech, and aerospace fighter modes of operation The rules for Land-Air BattleMechs (LAMs), may be found on page 177"
+  },
+  {
+    "abbreviation": "LAM(30g/5a)",
+    "ability": "Land-Air Battlemech",
+    "summary": "Land-Air Battlemech",
+    "rules": "A BattleMech with this special has been built to convert between BattleMech, AirMech, and aerospace fighter modes of operation The rules for Land-Air BattleMechs (LAMs), may be found on page 177"
+  },
+  {
+    "abbreviation": "LAM(36g/6a)",
+    "ability": "Land-Air Battlemech",
+    "summary": "Land-Air Battlemech",
+    "rules": "A BattleMech with this special has been built to convert between BattleMech, AirMech, and aerospace fighter modes of operation The rules for Land-Air BattleMechs (LAMs), may be found on page 177"
+  },
+  {
+    "abbreviation": "LMAS",
+    "ability": "Mimetic Armor System/Light Mimetic Armor System",
+    "summary": "Mimetic Armor System/Light Mimetic Armor System",
+    "rules": "Mimetic armors are similar to Stealth systems (see p 79) in that they make a target more difficult to hit with weapon attacks (but not physical attacks) Unlike Stealth, to be effective mimetic armor requires its bearer to remain stationary If a unit with the MAS special ability is immobile or remained at a standstill during the this turn’s Movement Phase, all non-physical attacks against that unit receive a +3 Target Number modifier for the remainder of the turn LMAS functions the same way, but provides only a +2 modifier"
+  },
+  {
+    "abbreviation": "LRM-/1/2",
+    "ability": "Long-Range Missiles",
+    "summary": "Long-Range Missiles",
+    "rules": "This unit mounts a significant number of long-range missile launchers and may fire them together as an alternative weapon attack instead of a standard weapon attack This ability enables the unit to use alternate LRM ammo for modified effects (see Alternate Munitions, p 143)"
+  },
+  {
+    "abbreviation": "LRM-/2/2",
+    "ability": "Long-Range Missiles",
+    "summary": "Long-Range Missiles",
+    "rules": "This unit mounts a significant number of long-range missile launchers and may fire them together as an alternative weapon attack instead of a standard weapon attack This ability enables the unit to use alternate LRM ammo for modified effects (see Alternate Munitions, p 143)"
+  },
+  {
+    "abbreviation": "LRM-/2/3",
+    "ability": "Long-Range Missiles",
+    "summary": "Long-Range Missiles",
+    "rules": "This unit mounts a significant number of long-range missile launchers and may fire them together as an alternative weapon attack instead of a standard weapon attack This ability enables the unit to use alternate LRM ammo for modified effects (see Alternate Munitions, p 143)"
+  },
+  {
+    "abbreviation": "MCS",
+    "ability": "Magnetic Clamp System",
+    "summary": "Magnetic Clamp System",
+    "rules": "ProtoMechs with magnetic clamps may ride on a BattleMech as if they were a battle armor infantry unit with the XMEC special (see p 78) No more than 2 ProtoMechs with the MCS special (or 1 with the UCS special) may ride on a single transporting ’Mech at the same time<p>When transporting ProtoMechs via the MCS or UCS special, the transport ’Mech will lose 2 inches of Move, per ProtoMech, so long as the ProtoMechs remain attached to it"
+  },
+  {
+    "abbreviation": "MTAS",
+    "ability": "Taser",
+    "summary": "Taser",
+    "rules": "A unit with the MTAS# special is carrying a ’Mech Taser; a unit with the BTAS# special carries a battle armor Taser For MTAS special abilities, the # in this special indicates the quantity of Taser weapons mounted by the unit in question, each of which may attempt one attack per turn against any targets that lie in the unit’s firing arc and within its Short range bracket For BTAS special abilities, the # in this special represents the maximum number of Taser attacks the unit can make for the entire scenario<p>All Taser attacks are resolved separately, and may be made in addition to the unit’s normal weapon or physical attacks The Taser attack itself delivers no damage, but a successful hit will cause either interference or shutdown any target that is not conventional infantry, a DropShip, or possesses the LG, VLG, or SLG ability Conventional infantry, DropShips, and units with the LG, VLG, or SLG abilities ignore the Taser effects entirely<p>When a Taser attack hits a target that can be affected by it, the attacker rolls 2D6, applying a –2 if using a BTAS special, a –2 if the target is a BattleMech, and a +2 modifier if the target is battle armor infantry On an 8+, the target is shut down for 1 turn On a 7 or less, the target suffers interference effects that apply a +1 Target Number modifier to all of its attack and Control rolls the unit makes for 1 turn (additional Taser hits do not add to this effect) Taser effects wear off in the End Phase of the turn after a Taser’s successful attack"
+  },
+  {
+    "abbreviation": "MTAS1",
+    "ability": "Taser",
+    "summary": "Taser",
+    "rules": "A unit with the MTAS# special is carrying a ’Mech Taser; a unit with the BTAS# special carries a battle armor Taser For MTAS special abilities, the # in this special indicates the quantity of Taser weapons mounted by the unit in question, each of which may attempt one attack per turn against any targets that lie in the unit’s firing arc and within its Short range bracket For BTAS special abilities, the # in this special represents the maximum number of Taser attacks the unit can make for the entire scenario<p>All Taser attacks are resolved separately, and may be made in addition to the unit’s normal weapon or physical attacks The Taser attack itself delivers no damage, but a successful hit will cause either interference or shutdown any target that is not conventional infantry, a DropShip, or possesses the LG, VLG, or SLG ability Conventional infantry, DropShips, and units with the LG, VLG, or SLG abilities ignore the Taser effects entirely<p>When a Taser attack hits a target that can be affected by it, the attacker rolls 2D6, applying a –2 if using a BTAS special, a –2 if the target is a BattleMech, and a +2 modifier if the target is battle armor infantry On an 8+, the target is shut down for 1 turn On a 7 or less, the target suffers interference effects that apply a +1 Target Number modifier to all of its attack and Control rolls the unit makes for 1 turn (additional Taser hits do not add to this effect) Taser effects wear off in the End Phase of the turn after a Taser’s successful attack"
+  },
+  {
+    "abbreviation": "Multi-Tasker",
+    "ability": "N/A",
+    "summary": "N/A",
+    "rules": "N/A"
+  },
+  {
+    "abbreviation": "NOVA",
+    "ability": "NOVA Composite EW System",
+    "summary": "NOVA Composite EW System",
+    "rules": "A unit with the NOVA special mounts a special electronics warfare system that not only provides the abilities of the ECM and PRB specials, but also acts as a C3i network that can link up to 3 units (see p 80) Unlike a normal C3i system, the Nova cannot be disrupted by ECM, LECM, and WAT specials; it can only be disrupted by a hostile unit with the NOVA special"
+  },
+  {
+    "abbreviation": "QV",
+    "ability": "Quadvee",
+    "summary": "Quadvee",
+    "rules": "A ’Mech unit with this special ability has been constructed as a QuadVee The rules for these units may be found on page 178"
+  },
+  {
+    "abbreviation": "RAMS",
+    "ability": "Risc Advanced Point Defense System",
+    "summary": "Risc Advanced Point Defense System",
+    "rules": "A unit equipped with a RISC advanced point defense system may use this special ability to reduce incoming missile fire against itself as a standard anti-missile system (see Anti-Missile System, p 76), or it may use the system to reduce the missile damage to any other friendly unit within 2 inches of its position by 1 point<p>The use of the RAMS special to defend its own unit or a friendly unit must be made when the missile attack is resolved; a RAMS ability used to defend its own unit cannot be used to defend a friendly unit (and vice versa) in the same turn"
+  },
+  {
+    "abbreviation": "RBT",
+    "ability": "Robotic Drone",
+    "summary": "Robotic Drone",
+    "rules": "Units with this special are driven by autonomous programming that enables them to function as a drone that does not require remote human direction The rules covering how robotic units work may be found on page 175"
+  },
+  {
+    "abbreviation": "REAR(0*/-/NaN",
+    "ability": "Rear-Firing Weapons",
+    "summary": "Rear-Firing Weapons",
+    "rules": "Although rear-facing weapons are common enough on larger and less flexible units like mobile structures and DropShips, several smaller units also feature secondary weapons mounted in their rear fields of fire ’Mechs, vehicles, and fighters that possess such weaponry feature the REAR (#/#/#/#) special unit ability to reflect this As with most other special weapon abilities, the numbers associated with this ability indicate the damage that the unit can inflict at each range bracket<p>Ground Units: Any ground unit with rear-facing weapons may decide to use them against any targets that begin the Combat Phase outside of the unit’s normal firing arc This rear attack is resolved using all of the same rules as a normal weapon attack, but applies an additional +1 Target Number modifier<p>Airborne Units: The same rules apply for fighter units as for ground units However, a fighter may only use its rear-facing weapons against units that are specifically tailing them (see p 185), and are within range of its rear weapons Thus, if a fighter has rear-firing weapons that only delivers damage to the Short range bracket, it may only use these weapons against tailing enemies at Short range<p>Combining Forward (or Turret) and Rearward Attacks: A unit attempting a REAR attack may still deliver normal forward firing attacks in the same turn, but its ability to do so is reduced To reflect this, if a unit makes an attack using the REAR special ability, for every point of REAR damage it can inflict, its forward-arc (or turret-based) damage for that turn must be reduced by the same amount This damage reduction is applied before the use of any additional damage made possible by overheating<p>Additional Restrictions: Overheat damage cannot be applied to REAR attacks, nor can a REAR attack deliberately reduce its damage values to improve forward-firing (or turret-based) weapon attacks Finally, REAR attacks cannot make use of other special attack abilities, such as heat, indirect fire, flak, or artillery<p>For example, an AS7-K Atlas possesses standard attack values of 3/3/3, and has an overheat value of 2 (with the OVL special) that allows it to hit targets harder at all three range brackets in its forward arc It also possesses the REAR1/1/- special ability The Atlas finds itself facing an enemy Centurion at Medium range, while a Vulcan has managed to slip behind it at Short range<p>The Atlas’ controlling player decides to attack both targets at once, but its rear-firing weapons—which can inflict 1 point of damage against the Vulcan at Short range—will reduce its ability to strike the forward target by an equal amount (1 point) This would mean the Centurion in front of the Atlas will suffer only 2 points of damage on a successful strike, unless the Atlas pilot decides to overheat his ’Mech to add more damage to its forward attack"
+  },
+  {
+    "abbreviation": "REAR(1/1/NaN",
+    "ability": "Rear-Firing Weapons",
+    "summary": "Rear-Firing Weapons",
+    "rules": "Although rear-facing weapons are common enough on larger and less flexible units like mobile structures and DropShips, several smaller units also feature secondary weapons mounted in their rear fields of fire ’Mechs, vehicles, and fighters that possess such weaponry feature the REAR (#/#/#/#) special unit ability to reflect this As with most other special weapon abilities, the numbers associated with this ability indicate the damage that the unit can inflict at each range bracket<p>Ground Units: Any ground unit with rear-facing weapons may decide to use them against any targets that begin the Combat Phase outside of the unit’s normal firing arc This rear attack is resolved using all of the same rules as a normal weapon attack, but applies an additional +1 Target Number modifier<p>Airborne Units: The same rules apply for fighter units as for ground units However, a fighter may only use its rear-facing weapons against units that are specifically tailing them (see p 185), and are within range of its rear weapons Thus, if a fighter has rear-firing weapons that only delivers damage to the Short range bracket, it may only use these weapons against tailing enemies at Short range<p>Combining Forward (or Turret) and Rearward Attacks: A unit attempting a REAR attack may still deliver normal forward firing attacks in the same turn, but its ability to do so is reduced To reflect this, if a unit makes an attack using the REAR special ability, for every point of REAR damage it can inflict, its forward-arc (or turret-based) damage for that turn must be reduced by the same amount This damage reduction is applied before the use of any additional damage made possible by overheating<p>Additional Restrictions: Overheat damage cannot be applied to REAR attacks, nor can a REAR attack deliberately reduce its damage values to improve forward-firing (or turret-based) weapon attacks Finally, REAR attacks cannot make use of other special attack abilities, such as heat, indirect fire, flak, or artillery<p>For example, an AS7-K Atlas possesses standard attack values of 3/3/3, and has an overheat value of 2 (with the OVL special) that allows it to hit targets harder at all three range brackets in its forward arc It also possesses the REAR1/1/- special ability The Atlas finds itself facing an enemy Centurion at Medium range, while a Vulcan has managed to slip behind it at Short range<p>The Atlas’ controlling player decides to attack both targets at once, but its rear-firing weapons—which can inflict 1 point of damage against the Vulcan at Short range—will reduce its ability to strike the forward target by an equal amount (1 point) This would mean the Centurion in front of the Atlas will suffer only 2 points of damage on a successful strike, unless the Atlas pilot decides to overheat his ’Mech to add more damage to its forward attack"
+  },
+  {
+    "abbreviation": "REL",
+    "ability": "Re-Engineered Lasers",
+    "summary": "Re-Engineered Lasers",
+    "rules": "A unit that carries re-engineered lasers is able to offset many of the benefits presented by several types of specialty armors, such as reflective When a unit with this ability successfully attacks a unit featuring reflective armor (RFA special), ignore that armor’s damagereducing effects Furthermore, if a unit with this ability successfully attacks a unit that features the critical-resistant (CR) special, replace the target’s normal –2 modifier for any critical hit rolls with –1"
+  },
+  {
+    "abbreviation": "RHS",
+    "ability": "Radical Heat Sink System",
+    "summary": "Radical Heat Sink System",
+    "rules": "A unit with the radical heat sink system (RHS) can perform a special coolant flush action in any End Phase where its Heat Scale is 1 point or higher This coolant flush will reduce the unit’s heat level by 1 point (to a minimum of 0), but the controlling player must then roll 1D6 If the roll result is 1, the RHS special must be marked off, and the unit fails to reduce its heat level for that turn A radical heat sink system that has been marked off in this fashion is no longer usable for the remainder of the scenario"
+  },
+  {
+    "abbreviation": "Range Master (Long)",
+    "ability": "N/A",
+    "summary": "N/A",
+    "rules": "N/A"
+  },
+  {
+    "abbreviation": "SDCS",
+    "ability": "SDS Drone Control System",
+    "summary": "SDS Drone Control System",
+    "rules": "Units with this special have an extremely sophisticated and highly adaptive robotic control system not seen since the fall of the original Star League This enables the unit to operate as a superior form of robotic drone, per the rules found on page 175"
+  },
+  {
+    "abbreviation": "SNARC",
+    "ability": "NARC Missile Beacon",
+    "summary": "NARC Missile Beacon",
+    "rules": "A unit with the CNARC# or SNARC# special ability may make an extra weapon attack using its Narc missile beacon device A unit hit by a Narc beacon will not suffer damage from the Narc itself, but will suffer 1 additional point of damage from any Indirect Fire (IF), LRM, or SRM attacks for the rest of the game—unless the unit is within a friendly ECM bubble Standard Narc beacon launchers (indicated by SNARC) have a maximum range of Medium, while Compact Narc beacon launchers (CNARC) have a maximum range of Short<p>Instead of their normal attack, Narc launchers may fire specialty ammo (see Alternate Munitions, p 143)<p>The numerical value of this ability indicates the number of extra Narc beacon attacks the unit can deliver in a single turn"
+  },
+  {
+    "abbreviation": "SNARC2",
+    "ability": "NARC Missile Beacon",
+    "summary": "NARC Missile Beacon",
+    "rules": "A unit with the CNARC# or SNARC# special ability may make an extra weapon attack using its Narc missile beacon device A unit hit by a Narc beacon will not suffer damage from the Narc itself, but will suffer 1 additional point of damage from any Indirect Fire (IF), LRM, or SRM attacks for the rest of the game—unless the unit is within a friendly ECM bubble Standard Narc beacon launchers (indicated by SNARC) have a maximum range of Medium, while Compact Narc beacon launchers (CNARC) have a maximum range of Short<p>Instead of their normal attack, Narc launchers may fire specialty ammo (see Alternate Munitions, p 143)<p>The numerical value of this ability indicates the number of extra Narc beacon attacks the unit can deliver in a single turn"
+  },
+  {
+    "abbreviation": "SSPC",
+    "ability": "N/A",
+    "summary": "N/A",
+    "rules": "N/A"
+  },
+  {
+    "abbreviation": "SUBS1",
+    "ability": "Submesible movement, Weak or Strong",
+    "summary": "Submesible movement, Weak or Strong",
+    "rules": "This unit has particularly underpowered, weak submersible movement or overpowered, strong submersible movement compared to their non-submersible movement Weak submersible movement subtracts the # from their TMM when using submersible movement Strong submersible movement adds the # to their TMM when using submersible movement"
+  },
+  {
+    "abbreviation": "SUBW1",
+    "ability": "Submesible movement, Weak or Strong",
+    "summary": "Submesible movement, Weak or Strong",
+    "rules": "This unit has particularly underpowered, weak submersible movement or overpowered, strong submersible movement compared to their non-submersible movement Weak submersible movement subtracts the # from their TMM when using submersible movement Strong submersible movement adds the # to their TMM when using submersible movement"
+  },
+  {
+    "abbreviation": "Speed Demon",
+    "ability": "N/A",
+    "summary": "N/A",
+    "rules": "N/A"
+  },
+  {
+    "abbreviation": "TRN",
+    "ability": "Trenchworks/Fieldworks engineers",
+    "summary": "Trenchworks/Fieldworks engineers",
+    "rules": "Each turn these infantry units may convert an area under a 2” AoE template into a fortified area Attacks against infantry units in a fortified area suffer an additional +2 Target Number modifier Heat, Inferno, and area effect weapons ignore this modifier"
+  },
+  {
+    "abbreviation": "TSEMP-O1",
+    "ability": "Tight-Stream Electromagnetic Pulse Weapons",
+    "summary": "Tight-Stream Electromagnetic Pulse Weapons",
+    "rules": "A unit with this special ability carries tight-stream EMP weapons (TSEMPs), which function much like an energy-based version of the taser (see above)<p>As with taser weapons, the numerical value for this special ability indicates the number of TSEMP weapon attacks the unit may attempt per turn If this numerical value is preceded by a “-O”, then the unit is only carrying one-shot TSEMPs, and the number instead indicates how many TSEMP attacks it may attempt for the entire scenario<p>TSEMP attacks may only be attempted in the unit’s Combat Phase, and may only be directed against targets within the unit’s Short or Medium range brackets on the ground map<p>A successful TSEMP attack will have no effect against conventional infantry unit, DropShips, or any other units that possess the VLG or SLG specials For all other unit types, a successful TSEMP attack must be followed by a second 2D6 roll, applying a –1 roll modifier if the target is a BattleMech or aerospace unit, a –2 if the target has the LG special, and a +2 if the target is a support vehicle unit<p>If the modified roll result is 8 or higher, the target shuts down for 1 turn On a 7 or less, the target instead suffers a +1 target modifier for all attacks and Control Rolls required of it for 1 turn Multiple TSEMP attacks against the same target will not increase these modifiers, but each attack each should make its effects roll as long as the target has not been shut down TSEMP effects against a target automatically wear off in the End Phase of the following turn"
+  },
+  {
+    "abbreviation": "TSEMP1",
+    "ability": "Tight-Stream Electromagnetic Pulse Weapons",
+    "summary": "Tight-Stream Electromagnetic Pulse Weapons",
+    "rules": "A unit with this special ability carries tight-stream EMP weapons (TSEMPs), which function much like an energy-based version of the taser (see above)<p>As with taser weapons, the numerical value for this special ability indicates the number of TSEMP weapon attacks the unit may attempt per turn If this numerical value is preceded by a “-O”, then the unit is only carrying one-shot TSEMPs, and the number instead indicates how many TSEMP attacks it may attempt for the entire scenario<p>TSEMP attacks may only be attempted in the unit’s Combat Phase, and may only be directed against targets within the unit’s Short or Medium range brackets on the ground map<p>A successful TSEMP attack will have no effect against conventional infantry unit, DropShips, or any other units that possess the VLG or SLG specials For all other unit types, a successful TSEMP attack must be followed by a second 2D6 roll, applying a –1 roll modifier if the target is a BattleMech or aerospace unit, a –2 if the target has the LG special, and a +2 if the target is a support vehicle unit<p>If the modified roll result is 8 or higher, the target shuts down for 1 turn On a 7 or less, the target instead suffers a +1 target modifier for all attacks and Control Rolls required of it for 1 turn Multiple TSEMP attacks against the same target will not increase these modifiers, but each attack each should make its effects roll as long as the target has not been shut down TSEMP effects against a target automatically wear off in the End Phase of the following turn"
+  },
+  {
+    "abbreviation": "TSEMP2",
+    "ability": "Tight-Stream Electromagnetic Pulse Weapons",
+    "summary": "Tight-Stream Electromagnetic Pulse Weapons",
+    "rules": "A unit with this special ability carries tight-stream EMP weapons (TSEMPs), which function much like an energy-based version of the taser (see above)<p>As with taser weapons, the numerical value for this special ability indicates the number of TSEMP weapon attacks the unit may attempt per turn If this numerical value is preceded by a “-O”, then the unit is only carrying one-shot TSEMPs, and the number instead indicates how many TSEMP attacks it may attempt for the entire scenario<p>TSEMP attacks may only be attempted in the unit’s Combat Phase, and may only be directed against targets within the unit’s Short or Medium range brackets on the ground map<p>A successful TSEMP attack will have no effect against conventional infantry unit, DropShips, or any other units that possess the VLG or SLG specials For all other unit types, a successful TSEMP attack must be followed by a second 2D6 roll, applying a –1 roll modifier if the target is a BattleMech or aerospace unit, a –2 if the target has the LG special, and a +2 if the target is a support vehicle unit<p>If the modified roll result is 8 or higher, the target shuts down for 1 turn On a 7 or less, the target instead suffers a +1 target modifier for all attacks and Control Rolls required of it for 1 turn Multiple TSEMP attacks against the same target will not increase these modifiers, but each attack each should make its effects roll as long as the target has not been shut down TSEMP effects against a target automatically wear off in the End Phase of the following turn"
+  },
+  {
+    "abbreviation": "TSI",
+    "ability": "Triple-Strength Implants",
+    "summary": "Triple-Strength Implants",
+    "rules": "Infantry with this special have been augmented with triplestrength myomer implants While most gameplay effects are covered under Augmented Warriors (see p 140), these units are also susceptible to the effects of anti-TSM munitions (see p 143)"
+  },
+  {
+    "abbreviation": "UCS",
+    "ability": "Magnetic Clamp System",
+    "summary": "Magnetic Clamp System",
+    "rules": "ProtoMechs with magnetic clamps may ride on a BattleMech as if they were a battle armor infantry unit with the XMEC special (see p 78) No more than 2 ProtoMechs with the MCS special (or 1 with the UCS special) may ride on a single transporting ’Mech at the same time<p>When transporting ProtoMechs via the MCS or UCS special, the transport ’Mech will lose 2 inches of Move, per ProtoMech, so long as the ProtoMechs remain attached to it"
+  },
+  {
+    "abbreviation": "VTL2",
+    "ability": "Vehicle Transport",
+    "summary": "Vehicle Transport",
+    "rules": "Vehicles differ from other units in that the type of bay necessary for transport differs by vehicle weight The Vehicle Transport special ability also indicates the maximum weight class of vehicle a given bay can accommodate, as defined below:<p>Medium Vehicle Transport (VTM#) bays can handle units of Size class 1 and 2 that do not have the Large (LG), Very Large (VLG), or Super Large (SLG) specials<p>Heavy Vehicle Transport (VTH) bays can hold units of Size class 1 through 4 that do not have the Large (LG), Very Large (VLG) or Super Large (SLG) specials<p>Super-Heavy Vehicle Transport (VTS) bays can accommodate units of Size class 1 through 4, including those that have the Large (LG) special, but not the Very Large (VLG) or Super Large (SLG) specials<p>Full rules regarding how to drop and deploy non-infantry units from a transport are presented elsewhere in this chapter For air vehicles (including VTOLs and airship units), see Aerospace Unit Transports, page 142 For other non-infantry transports, see Transporting Non-Infantry Units, page 39 The Dropping Troops rules (see p 160) may also be used for some vehicle units"
+  },
+  {
+    "abbreviation": "VTL4",
+    "ability": "Vehicle Transport",
+    "summary": "Vehicle Transport",
+    "rules": "Vehicles differ from other units in that the type of bay necessary for transport differs by vehicle weight The Vehicle Transport special ability also indicates the maximum weight class of vehicle a given bay can accommodate, as defined below:<p>Medium Vehicle Transport (VTM#) bays can handle units of Size class 1 and 2 that do not have the Large (LG), Very Large (VLG), or Super Large (SLG) specials<p>Heavy Vehicle Transport (VTH) bays can hold units of Size class 1 through 4 that do not have the Large (LG), Very Large (VLG) or Super Large (SLG) specials<p>Super-Heavy Vehicle Transport (VTS) bays can accommodate units of Size class 1 through 4, including those that have the Large (LG) special, but not the Very Large (VLG) or Super Large (SLG) specials<p>Full rules regarding how to drop and deploy non-infantry units from a transport are presented elsewhere in this chapter For air vehicles (including VTOLs and airship units), see Aerospace Unit Transports, page 142 For other non-infantry transports, see Transporting Non-Infantry Units, page 39 The Dropping Troops rules (see p 160) may also be used for some vehicle units"
+  }
+]
