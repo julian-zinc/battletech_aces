@@ -10,9 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "^12.12.1",
+    "lucide-react": "^0.479.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "lucide-react": "^0.479.0"
+    "react-firebase-hooks": "^5.1.1",
+    "react-router-dom": "^7.14.2"
   },
   "devDependencies": {
     "@vitejs/plugin-react-swc": "^3.5.0",

@@ -279,9 +279,6 @@ function App() {
   const onDragOver = (e, index) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-
-    // Simple swap during drag for feedback or just wait for drop
-    // We'll wait for drop for simplicity as per user request to "reorder by dragging"
   };
 
   const onDrop = (e, index) => {
@@ -364,7 +361,7 @@ function App() {
         <div className="header-left">
           <div className="logo" onClick={() => setCurrentPhase('mantenimiento')} style={{ cursor: 'pointer' }}>
             <Cpu size={24} />
-            BATTLETECH ACES
+            BATTLETECH ACES IA
           </div>
 
           <div className="phase-controls">
