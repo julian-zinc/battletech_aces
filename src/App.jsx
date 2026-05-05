@@ -21,6 +21,14 @@ const MECH_TYPES = [
   "Sniper"
 ];
 
+const DIFFICULTIES = {
+  Rookie: 1.2,
+  Standard: 1.0,
+  Veteran: 0.9,
+  Elite: 0.8,
+  Legendary: 0.7
+};
+
 const MechDisplayName = ({ mech }) => {
   if (!mech) return null;
   const nameToUse = mech.baseName || mech.name;
@@ -54,6 +62,7 @@ function App() {
   const [campaignMissions, setCampaignMissions] = useState([]);
   const [campaignMechsList, setCampaignMechsList] = useState([]);
   const [campaignPilots, setCampaignPilots] = useState([]);
+  const [campaignDifficulty, setCampaignDifficulty] = useState('Standard');
 
   // Campaign Form States
   const emptyMission = { 
@@ -62,8 +71,17 @@ function App() {
     date: new Date().toISOString().split('T')[0], 
     won: false, 
     details: '',
-    income: { main: 0, other: 0, multiplier: 1 },
-    expenses: { recon: 0, waypoints: 0, rearming: 0, injured: 0, newPilots: 0, destroyed: 0, incapacitated: 0, structure: 0, armor: 0 },
+    income: { main: '', other: '', multiplier: 1 },
+    expenses: { 
+      recon: '', waypoints: '', 
+      rearming: '', rearmingUnits: '', 
+      injured: '', injuredCount: '', 
+      newPilots: '', newPilotsCount: '', 
+      destroyed: '', destroyedSize: '',
+      incapacitated: '', incapacitatedSize: '',
+      structure: '', structureSize: '',
+      armor: '', armorSize: ''
+    },
     balance: 0 
   };
 
@@ -74,11 +92,24 @@ function App() {
   const [editingMissionId, setEditingMissionId] = useState(null);
   const [editingPilotId, setEditingPilotId] = useState(null);
 
+  const evaluateFormula = (val) => {
+    if (val === undefined || val === null || val === '') return 0;
+    if (typeof val === 'number') return val;
+    let clean = val.toString().replace(/,/g, '.').replace(/[^0-9.+-/]/g, '');
+    if (!clean) return 0;
+    try {
+      const result = new Function(`"use strict"; return (${clean})`)();
+      return isFinite(result) ? result : 0;
+    } catch (e) {
+      return parseFloat(clean) || 0;
+    }
+  };
+
   const calculateBalance = (m) => {
     if (!m || !m.income || !m.expenses) return 0;
-    const totalIncome = (m.income.main + m.income.other) * m.income.multiplier;
-    const totalExpenses = Object.values(m.expenses).reduce((a, b) => a + b, 0);
-    return totalIncome - totalExpenses;
+    const totalIncome = ((evaluateFormula(m.income.main)) + (evaluateFormula(m.income.other))) * (evaluateFormula(m.income.multiplier));
+    const totalExpenses = Object.values(m.expenses).reduce((a, b) => a + evaluateFormula(b), 0);
+    return Math.round((totalIncome - totalExpenses) * 100) / 100;
   };
 
   // Sync with Firestore
@@ -90,12 +121,14 @@ function App() {
           setCampaignMissions(data.missions || []);
           setCampaignMechsList(data.mechs || []);
           setCampaignPilots(data.pilots || []);
+          setCampaignDifficulty(data.difficulty || 'Standard');
         } else {
           // Initialize empty campaign if it doesn't exist
           setDoc(doc(db, "campaigns", campaignCode.toLowerCase()), {
             missions: [],
             mechs: [],
-            pilots: []
+            pilots: [],
+            difficulty: 'Standard'
           });
         }
       }, (error) => {
@@ -431,12 +464,12 @@ function App() {
   };
 
   const updatePilot = (id, updates) => {
-    const updated = campaignPilots.map(p => p.id === id ? { ...p, ...updates } : p);
+    const updated = campaignPilots.map(p => p.id == id ? { ...p, ...updates } : p);
     syncToFirebase({ pilots: updated });
   };
 
   const deletePilot = (id) => {
-    const updated = campaignPilots.filter(p => p.id !== id);
+    const updated = campaignPilots.filter(p => p.id != id);
     syncToFirebase({ pilots: updated });
   };
 
@@ -449,7 +482,7 @@ function App() {
   };
 
   const removeCampaignMech = (id) => {
-    const updated = campaignMechsList.filter(m => m.id !== id);
+    const updated = campaignMechsList.filter(m => m.id != id);
     syncToFirebase({ mechs: updated });
   };
 
@@ -463,7 +496,7 @@ function App() {
 
   const updateMission = (id, updates) => {
     const updated = campaignMissions.map(m => {
-      if (m.id === id) {
+      if (m.id == id) {
         const merged = { ...m, ...updates };
         return { ...merged, balance: calculateBalance(merged) };
       }
@@ -473,7 +506,7 @@ function App() {
   };
 
   const deleteMission = (id) => {
-    const updated = campaignMissions.filter(m => m.id !== id);
+    const updated = campaignMissions.filter(m => m.id != id);
     syncToFirebase({ missions: updated });
   };
 
@@ -499,6 +532,9 @@ function App() {
   const renderCampaignDetail = () => {
     const alivePilots = campaignPilots.filter(p => p.alive);
     const memorialPilots = campaignPilots.filter(p => !p.alive);
+    const editingMission = editingMissionId === 'new' 
+      ? newMission 
+      : campaignMissions.find(m => m.id == editingMissionId);
 
     return (
       <div className="campaign-detail-view">
@@ -506,6 +542,19 @@ function App() {
           <h2>DETALLE DE CAMPAÑA</h2>
           <div className="header-campaign-actions">
             <div className="campaign-id-badge">CÓDIGO: {campaignCode.toUpperCase()}</div>
+            <select 
+              className="difficulty-select"
+              value={campaignDifficulty} 
+              onChange={(e) => {
+                const newDiff = e.target.value;
+                setCampaignDifficulty(newDiff);
+                syncToFirebase({ difficulty: newDiff });
+              }}
+            >
+              {Object.keys(DIFFICULTIES).map(d => (
+                <option key={d} value={d}>{d} ({Math.round(DIFFICULTIES[d] * 100)}%)</option>
+              ))}
+            </select>
             <button className="exit-btn" onClick={handleExitCampaign}>
               Salir
             </button>
@@ -515,7 +564,13 @@ function App() {
         <div className="campaign-column">
           <div className="column-header">
             <h3>MISIONES</h3>
-            <button className="add-btn-mini" onClick={() => setEditingMissionId('new')}>
+            <button className="add-btn-mini" onClick={() => {
+              setNewMission({
+                ...emptyMission, 
+                income: { ...emptyMission.income, multiplier: DIFFICULTIES[campaignDifficulty] } 
+              });
+              setEditingMissionId('new');
+            }}>
               <Plus size={16} /> Añadir
             </button>
           </div>
@@ -632,11 +687,14 @@ function App() {
               <div className="mission-calc-layout">
                 <div className="calc-main-form">
                   <div className="form-row">
-                    <input type="number" placeholder="Núm" value={editingMissionId === 'new' ? newMission.number : campaignMissions.find(m => m.id === editingMissionId)?.number} 
-                      onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, number: e.target.value}) : updateMission(editingMissionId, {number: e.target.value})} />
-                    <input type="text" placeholder="Nombre" className="flex-1" value={editingMissionId === 'new' ? newMission.name : campaignMissions.find(m => m.id === editingMissionId)?.name} 
+                    <input type="text" placeholder="Núm" value={editingMission?.number || ''} 
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^0-9,./+-]/g, '');
+                        editingMissionId === 'new' ? setNewMission({...newMission, number: val}) : updateMission(editingMissionId, {number: val});
+                      }} />
+                    <input type="text" placeholder="Nombre" className="flex-1" value={editingMission?.name || ''} 
                       onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, name: e.target.value}) : updateMission(editingMissionId, {name: e.target.value})} />
-                    <input type="date" value={editingMissionId === 'new' ? newMission.date : campaignMissions.find(m => m.id === editingMissionId)?.date} 
+                    <input type="date" value={editingMission?.date || ''} 
                       onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, date: e.target.value}) : updateMission(editingMissionId, {date: e.target.value})} />
                   </div>
 
@@ -644,32 +702,31 @@ function App() {
                     <div className="calc-group income">
                       <h4>INGRESOS (SP)</h4>
                       <label>Objetivo Principal</label>
-                      <input type="number" value={(editingMissionId === 'new' ? newMission.income.main : campaignMissions.find(m => m.id === editingMissionId)?.income.main) || 0} 
+                      <input type="text" value={editingMission?.income?.main} 
                         onChange={e => {
-                          const val = parseInt(e.target.value) || 0;
+                          const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                           if (editingMissionId === 'new') setNewMission({...newMission, income: {...newMission.income, main: val}});
-                          else updateMission(editingMissionId, {income: {...campaignMissions.find(m => m.id === editingMissionId).income, main: val}});
+                          else updateMission(editingMissionId, {income: {...editingMission.income, main: val}});
                         }} />
                       <label>Otros Objetivos</label>
-                      <input type="number" value={(editingMissionId === 'new' ? newMission.income.other : campaignMissions.find(m => m.id === editingMissionId)?.income.other) || 0} 
+                      <input type="text" value={editingMission?.income?.other} 
                         onChange={e => {
-                          const val = parseInt(e.target.value) || 0;
+                          const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                           if (editingMissionId === 'new') setNewMission({...newMission, income: {...newMission.income, other: val}});
-                          else updateMission(editingMissionId, {income: {...campaignMissions.find(m => m.id === editingMissionId).income, other: val}});
+                          else updateMission(editingMissionId, {income: {...editingMission.income, other: val}});
                         }} />
                       <label>Multiplicador Dificultad</label>
-                      <input type="number" step="0.1" value={(editingMissionId === 'new' ? newMission.income.multiplier : campaignMissions.find(m => m.id === editingMissionId)?.income.multiplier) || 1} 
-                        onChange={e => {
-                          const val = parseFloat(e.target.value) || 1;
-                          if (editingMissionId === 'new') setNewMission({...newMission, income: {...newMission.income, multiplier: val}});
-                          else updateMission(editingMissionId, {income: {...campaignMissions.find(m => m.id === editingMissionId).income, multiplier: val}});
-                        }} />
+                      <input 
+                        type="text" 
+                        readOnly={true}
+                        className="read-only-input"
+                        value={editingMission?.income?.multiplier || 1} />
                       
                       <div className="calc-subtotal">
                         Total Ingresos: {
-                          (((editingMissionId === 'new' ? newMission.income.main : campaignMissions.find(m => m.id === editingMissionId)?.income.main) || 0) + 
-                          ((editingMissionId === 'new' ? newMission.income.other : campaignMissions.find(m => m.id === editingMissionId)?.income.other) || 0)) * 
-                          ((editingMissionId === 'new' ? newMission.income.multiplier : campaignMissions.find(m => m.id === editingMissionId)?.income.multiplier) || 1)
+                          ((evaluateFormula(editingMission?.income?.main)) + 
+                          (evaluateFormula(editingMission?.income?.other))) * 
+                          (evaluateFormula(editingMission?.income?.multiplier))
                         } SP
                       </div>
                     </div>
@@ -679,90 +736,138 @@ function App() {
                       <div className="expenses-grid">
                         <div>
                           <label>Recon</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.recon : campaignMissions.find(m => m.id === editingMissionId)?.expenses.recon) || 0} 
+                          <input type="text" value={editingMission?.expenses?.recon} 
                             onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
+                              const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                               if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, recon: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, recon: val}});
+                              else updateMission(editingMissionId, {expenses: {...editingMission.expenses, recon: val}});
                             }} />
                         </div>
                         <div>
                           <label>Waypoints</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.waypoints : campaignMissions.find(m => m.id === editingMissionId)?.expenses.waypoints) || 0} 
+                          <input type="text" value={editingMission?.expenses?.waypoints} 
                             onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
+                              const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                               if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, waypoints: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, waypoints: val}});
+                              else updateMission(editingMissionId, {expenses: {...editingMission.expenses, waypoints: val}});
                             }} />
                         </div>
-                        <div>
-                          <label>Rearming</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.rearming : campaignMissions.find(m => m.id === editingMissionId)?.expenses.rearming) || 0} 
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, rearming: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, rearming: val}});
-                            }} />
+                        <div className="rearming-input-group">
+                          <label>Rearming (#Units without ENE)</label>
+                          <div className="rearming-input-row">
+                            <input type="text" placeholder="#" className="units-input"
+                              value={editingMission?.expenses?.rearmingUnits || ''}
+                              onChange={e => {
+                                const units = e.target.value.replace(/[^0-9,./+-]/g, '');
+                                const sp = evaluateFormula(units) * 20;
+                                if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, rearmingUnits: units, rearming: sp}});
+                                else updateMission(editingMissionId, {expenses: {...editingMission.expenses, rearmingUnits: units, rearming: sp}});
+                              }} />
+                            <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.rearming || 0} />
+                          </div>
                         </div>
-                        <div>
-                          <label>Personal Herido</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.injured : campaignMissions.find(m => m.id === editingMissionId)?.expenses.injured) || 0} 
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, injured: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, injured: val}});
-                            }} />
+                        <div className="personal-calc-block">
+                          <h5>Personal</h5>
+                          <div className="injured-input-group">
+                            <label>Personal Herido (#Heridos o tripulantes muertos)</label>
+                            <div className="rearming-input-row">
+                              <input type="text" placeholder="#" className="units-input"
+                                value={editingMission?.expenses?.injuredCount || ''}
+                                onChange={e => {
+                                  const count = e.target.value.replace(/[^0-9,./+-]/g, '');
+                                  const sp = evaluateFormula(count) * 100;
+                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, injuredCount: count, injured: sp}});
+                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, injuredCount: count, injured: sp}});
+                                }} />
+                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.injured || 0} />
+                            </div>
+                          </div>
+                          <div className="new-pilots-input-group">
+                            <label>Nuevos Pilotos</label>
+                            <div className="rearming-input-row">
+                              <input type="text" placeholder="#" className="units-input"
+                                value={editingMission?.expenses?.newPilotsCount || ''}
+                                onChange={e => {
+                                  const count = e.target.value.replace(/[^0-9,./+-]/g, '');
+                                  const sp = evaluateFormula(count) * 150;
+                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, newPilotsCount: count, newPilots: sp}});
+                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, newPilotsCount: count, newPilots: sp}});
+                                }} />
+                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.newPilots || 0} />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <label>Nuevos Pilotos</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.newPilots : campaignMissions.find(m => m.id === editingMissionId)?.expenses.newPilots) || 0} 
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, newPilots: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, newPilots: val}});
-                            }} />
-                        </div>
-                        <div>
-                          <label>Unid. Destruidas</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.destroyed : campaignMissions.find(m => m.id === editingMissionId)?.expenses.destroyed) || 0} 
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, destroyed: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, destroyed: val}});
-                            }} />
-                        </div>
-                        <div>
-                          <label>Unid. Incapacitadas</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.incapacitated : campaignMissions.find(m => m.id === editingMissionId)?.expenses.incapacitated) || 0} 
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, incapacitated: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, incapacitated: val}});
-                            }} />
-                        </div>
-                        <div>
-                          <label>Estructura/Críticos</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.structure : campaignMissions.find(m => m.id === editingMissionId)?.expenses.structure) || 0} 
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, structure: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, structure: val}});
-                            }} />
-                        </div>
-                        <div>
-                          <label>Armadura</label>
-                          <input type="number" value={(editingMissionId === 'new' ? newMission.expenses.armor : campaignMissions.find(m => m.id === editingMissionId)?.expenses.armor) || 0} 
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, armor: val}});
-                              else updateMission(editingMissionId, {expenses: {...campaignMissions.find(m => m.id === editingMissionId).expenses, armor: val}});
-                            }} />
+                        <div className="repairs-calc-block">
+                          <div className="repairs-header">
+                            <h5>Reparaciones</h5>
+                            <span className="repairs-explanation">Size total por categoría</span>
+                          </div>
+                          
+                          <div className="repair-row">
+                            <label>Unidades destruidas (x100)</label>
+                            <div className="rearming-input-row">
+                              <input type="text" placeholder="Size" className="units-input"
+                                value={editingMission?.expenses?.destroyedSize || ''}
+                                onChange={e => {
+                                  const size = e.target.value.replace(/[^0-9,./+-]/g, '');
+                                  const sp = evaluateFormula(size) * 100;
+                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, destroyedSize: size, destroyed: sp}});
+                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, destroyedSize: size, destroyed: sp}});
+                                }} />
+                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.destroyed || 0} />
+                            </div>
+                          </div>
+
+                          <div className="repair-row">
+                            <label>Unidades incapacitadas (x60)</label>
+                            <div className="rearming-input-row">
+                              <input type="text" placeholder="Size" className="units-input"
+                                value={editingMission?.expenses?.incapacitatedSize || ''}
+                                onChange={e => {
+                                  const size = e.target.value.replace(/[^0-9,./+-]/g, '');
+                                  const sp = evaluateFormula(size) * 60;
+                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, incapacitatedSize: size, incapacitated: sp}});
+                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, incapacitatedSize: size, incapacitated: sp}});
+                                }} />
+                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.incapacitated || 0} />
+                            </div>
+                          </div>
+
+                          <div className="repair-row">
+                            <label>Estructura / Críticos (x40)</label>
+                            <div className="rearming-input-row">
+                              <input type="text" placeholder="Size" className="units-input"
+                                value={editingMission?.expenses?.structureSize || ''}
+                                onChange={e => {
+                                  const size = e.target.value.replace(/[^0-9,./+-]/g, '');
+                                  const sp = evaluateFormula(size) * 40;
+                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, structureSize: size, structure: sp}});
+                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, structureSize: size, structure: sp}});
+                                }} />
+                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.structure || 0} />
+                            </div>
+                          </div>
+
+                          <div className="repair-row">
+                            <label>Daño Armadura (x20)</label>
+                            <div className="rearming-input-row">
+                              <input type="text" placeholder="Size" className="units-input"
+                                value={editingMission?.expenses?.armorSize || ''}
+                                onChange={e => {
+                                  const size = e.target.value.replace(/[^0-9,./+-]/g, '');
+                                  const sp = evaluateFormula(size) * 20;
+                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, armorSize: size, armor: sp}});
+                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, armorSize: size, armor: sp}});
+                                }} />
+                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.armor || 0} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
                       <div className="calc-subtotal">
                         Total Gastos: {
-                          Object.values((editingMissionId === 'new' ? newMission.expenses : campaignMissions.find(m => m.id === editingMissionId)?.expenses) || {}).reduce((a, b) => a + b, 0)
+                          Object.values(editingMission?.expenses || {}).reduce((a, b) => a + evaluateFormula(b), 0)
                         } SP
                       </div>
                     </div>
@@ -771,18 +876,18 @@ function App() {
                   <div className="calc-summary-row">
                     <div className="checkbox-group">
                       <label>Victoria</label>
-                      <input type="checkbox" checked={editingMissionId === 'new' ? newMission.won : campaignMissions.find(m => m.id === editingMissionId)?.won} 
+                      <input type="checkbox" checked={editingMission?.won || false} 
                         onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, won: e.target.checked}) : updateMission(editingMissionId, {won: e.target.checked})} />
                     </div>
                     <div className="final-balance-badge">
-                      BALANCE AVENTURA: {calculateBalance(editingMissionId === 'new' ? newMission : campaignMissions.find(m => m.id === editingMissionId))} SP
+                      BALANCE AVENTURA: {calculateBalance(editingMission)} SP
                     </div>
                   </div>
 
                   <textarea 
                     placeholder="Detalles de la misión..." 
                     className="mission-details-area"
-                    value={editingMissionId === 'new' ? newMission.details : campaignMissions.find(m => m.id === editingMissionId)?.details} 
+                    value={editingMission?.details || ''} 
                     onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, details: e.target.value}) : updateMission(editingMissionId, {details: e.target.value})} 
                   />
                 </div>
@@ -790,7 +895,12 @@ function App() {
 
               <div className="modal-actions">
                 {editingMissionId === 'new' ? (
-                  <button onClick={() => { addMission(); setEditingMissionId(null); }}>Guardar Misión</button>
+                  <button 
+                    disabled={!newMission.number || !newMission.name}
+                    onClick={() => { addMission(); setEditingMissionId(null); }}
+                  >
+                    Guardar Misión
+                  </button>
                 ) : (
                   <>
                     <button onClick={() => setEditingMissionId(null)}>Cerrar</button>
@@ -807,21 +917,30 @@ function App() {
             <div className="modal-content" onClick={e => e.stopPropagation()}>
               <h3>{editingPilotId === 'new' ? 'Nuevo Piloto' : 'Editar Piloto'}</h3>
               <div className="form-grid">
-                <input type="text" placeholder="Nombre" value={editingPilotId === 'new' ? newPilot.name : campaignPilots.find(p => p.id === editingPilotId)?.name} 
+                <input type="text" placeholder="Nombre" value={editingPilotId === 'new' ? newPilot.name : campaignPilots.find(p => p.id == editingPilotId)?.name} 
                   onChange={e => editingPilotId === 'new' ? setNewPilot({...newPilot, name: e.target.value}) : updatePilot(editingPilotId, {name: e.target.value})} />
-                <input type="number" placeholder="Total SP" value={editingPilotId === 'new' ? newPilot.sp : campaignPilots.find(p => p.id === editingPilotId)?.sp} 
-                  onChange={e => editingPilotId === 'new' ? setNewPilot({...newPilot, sp: parseInt(e.target.value) || 0}) : updatePilot(editingPilotId, {sp: parseInt(e.target.value) || 0})} />
-                {editingPilotId !== 'new' && (
+                <div className="form-row">
+                  <div className="input-group">
+                    <label>SP</label>
+                    <input type="number" value={editingPilotId === 'new' ? newPilot.sp : campaignPilots.find(p => p.id == editingPilotId)?.sp} 
+                      onChange={e => {
+                        const val = parseInt(e.target.value) || 0;
+                        if (editingPilotId === 'new') setNewPilot({...newPilot, sp: val});
+                        else updatePilot(editingPilotId, {sp: val});
+                      }} />
+                  </div>
                   <div className="checkbox-group">
                     <label>Vivo</label>
-                    <input type="checkbox" checked={campaignPilots.find(p => p.id === editingPilotId)?.alive} 
-                      onChange={e => updatePilot(editingPilotId, {alive: e.target.checked})} />
+                    <input type="checkbox" checked={editingPilotId === 'new' ? true : campaignPilots.find(p => p.id == editingPilotId)?.alive} 
+                      onChange={e => {
+                        if (editingPilotId !== 'new') updatePilot(editingPilotId, {alive: e.target.checked});
+                      }} />
                   </div>
-                )}
+                </div>
               </div>
               <div className="modal-actions">
                 {editingPilotId === 'new' ? (
-                  <button onClick={() => { addPilot(); setEditingPilotId(null); }}>Guardar</button>
+                  <button onClick={() => { addPilot(); setEditingPilotId(null); }}>Guardar Piloto</button>
                 ) : (
                   <>
                     <button onClick={() => setEditingPilotId(null)}>Cerrar</button>
