@@ -63,6 +63,8 @@ function App() {
   const [campaignMechsList, setCampaignMechsList] = useState([]);
   const [campaignPilots, setCampaignPilots] = useState([]);
   const [campaignDifficulty, setCampaignDifficulty] = useState('Standard');
+  const [campaignWarchest, setCampaignWarchest] = useState(0);
+  const [newPilotName, setNewPilotName] = useState('');
 
   // Campaign Form States
   const emptyMission = { 
@@ -76,19 +78,20 @@ function App() {
       recon: '', waypoints: '', 
       rearming: '', rearmingUnits: '', 
       injured: '', injuredCount: '', 
-      newPilots: '', newPilotsCount: '', 
       destroyed: '', destroyedSize: '',
       incapacitated: '', incapacitatedSize: '',
       structure: '', structureSize: '',
       armor: '', armorSize: ''
     },
+    pilotMaxEarnings: 150,
+    pilotAssignments: {},
+    mvpPilotId: null,
     balance: 0 
   };
 
   const [newMission, setNewMission] = useState(emptyMission);
   const [newCampaignMechName, setNewCampaignMechName] = useState('');
   const [newCampaignMechPV, setNewCampaignMechPV] = useState(0);
-  const [newPilot, setNewPilot] = useState({ name: '', sp: 0 });
   const [editingMissionId, setEditingMissionId] = useState(null);
   const [editingPilotId, setEditingPilotId] = useState(null);
 
@@ -107,9 +110,72 @@ function App() {
 
   const calculateBalance = (m) => {
     if (!m || !m.income || !m.expenses) return 0;
+    if (!m.won) return 0;
     const totalIncome = ((evaluateFormula(m.income.main)) + (evaluateFormula(m.income.other))) * (evaluateFormula(m.income.multiplier));
     const totalExpenses = Object.values(m.expenses).reduce((a, b) => a + evaluateFormula(b), 0);
     return Math.round((totalIncome - totalExpenses) * 100) / 100;
+  };
+
+  const getPilotSPDistribution = (m, pilotsList) => {
+    const totalPool = calculateBalance(m);
+    if (!m?.won) return { distribution: {}, warchest: 0 };
+    if (totalPool <= 0) return { distribution: {}, warchest: totalPool };
+
+    const alivePilots = pilotsList.filter(p => p.alive);
+    const maxP = evaluateFormula(m.pilotMaxEarnings) || 0;
+    
+    // Distribution logic: equal share until individual caps
+    // Caps: assigned = maxP, unassigned = maxP / 2
+    let remainingPool = totalPool;
+    const distribution = {};
+    const pilotsWithCaps = alivePilots.map(p => ({
+      id: p.id,
+      cap: (m.pilotAssignments?.[p.id] === 'unassigned') ? maxP / 2 : maxP
+    }));
+
+    // Iterative distribution to be simple and "equitativa"
+    // We could do it in one pass:
+    // Sort caps (though here we only have 2 cap values)
+    // Actually, simpler logic:
+    // If Pool >= Sum(Caps), everyone gets Cap, remainder goes to Warchest
+    const totalCap = pilotsWithCaps.reduce((a, b) => a + b.cap, 0);
+    if (remainingPool >= totalCap) {
+      pilotsWithCaps.forEach(p => distribution[p.id] = p.cap);
+      return { distribution, warchest: Math.round((remainingPool - totalCap) * 100) / 100 };
+    }
+
+    // If Pool < TotalCap, distribute equally
+    // While there is pool and pilots not at cap
+    let activePilots = [...pilotsWithCaps];
+    while (remainingPool > 0.01 && activePilots.length > 0) {
+      let share = remainingPool / activePilots.length;
+      let nextActivePilots = [];
+      let distributedInThisPass = 0;
+      
+      activePilots.forEach(p => {
+        let current = distribution[p.id] || 0;
+        let canTake = p.cap - current;
+        if (canTake > 0) {
+          let taking = Math.min(share, canTake);
+          distribution[p.id] = current + taking;
+          distributedInThisPass += taking;
+          if (distribution[p.id] < p.cap) {
+            nextActivePilots.push(p);
+          }
+        }
+      });
+      
+      remainingPool -= distributedInThisPass;
+      if (distributedInThisPass < 0.01) break; // Avoid infinite loop with tiny floats
+      activePilots = nextActivePilots;
+    }
+
+    // Round values
+    Object.keys(distribution).forEach(id => {
+      distribution[id] = Math.round(distribution[id] * 100) / 100;
+    });
+
+    return { distribution, warchest: 0 };
   };
 
   // Sync with Firestore
@@ -122,13 +188,15 @@ function App() {
           setCampaignMechsList(data.mechs || []);
           setCampaignPilots(data.pilots || []);
           setCampaignDifficulty(data.difficulty || 'Standard');
+          setCampaignWarchest(data.warchest || 0);
         } else {
           // Initialize empty campaign if it doesn't exist
           setDoc(doc(db, "campaigns", campaignCode.toLowerCase()), {
             missions: [],
             mechs: [],
             pilots: [],
-            difficulty: 'Standard'
+            difficulty: 'Standard',
+            warchest: 0
           });
         }
       }, (error) => {
@@ -457,10 +525,20 @@ function App() {
   const activeMech = visibleMechs[activeMechIndex];
 
   const addPilot = () => {
-    if (!newPilot.name) return;
-    const updated = [...campaignPilots, { id: Date.now(), ...newPilot, alive: true }];
-    syncToFirebase({ pilots: updated });
-    setNewPilot({ name: '', sp: 0 });
+    if (!newPilotName || campaignWarchest < 150) return;
+    const p = { 
+      id: Date.now(), 
+      name: newPilotName, 
+      sp: 150, 
+      alive: true 
+    };
+    const updatedWarchest = campaignWarchest - 150;
+    const updatedPilots = [...campaignPilots, p];
+    syncToFirebase({ 
+      pilots: updatedPilots,
+      warchest: updatedWarchest
+    });
+    setNewPilotName('');
   };
 
   const updatePilot = (id, updates) => {
@@ -469,8 +547,16 @@ function App() {
   };
 
   const deletePilot = (id) => {
-    const updated = campaignPilots.filter(p => p.id != id);
-    syncToFirebase({ pilots: updated });
+    const pilotToDelete = campaignPilots.find(p => p.id == id);
+    if (!pilotToDelete) return;
+
+    const updatedWarchest = campaignWarchest + 150;
+    const updatedPilots = campaignPilots.filter(p => p.id != id);
+    
+    syncToFirebase({ 
+      pilots: updatedPilots,
+      warchest: updatedWarchest
+    });
   };
 
   const addCampaignMech = () => {
@@ -488,9 +574,32 @@ function App() {
 
   const addMission = () => {
     if (!newMission.name) return;
-    const missionToAdd = { ...newMission, id: Date.now(), balance: calculateBalance(newMission) };
-    const updated = [...campaignMissions, missionToAdd];
-    syncToFirebase({ missions: updated });
+    
+    // Calculate rewards to apply
+    const { distribution, warchest } = getPilotSPDistribution(newMission, campaignPilots);
+    
+    // Apply to global state
+    const updatedWarchest = campaignWarchest + warchest;
+    const updatedPilots = campaignPilots.map(p => ({
+      ...p,
+      sp: (p.sp || 0) + (distribution[p.id] || 0)
+    }));
+
+    const missionToAdd = { 
+      ...newMission, 
+      id: Date.now(), 
+      balance: calculateBalance(newMission),
+      appliedRewards: { warchest, pilots: distribution }
+    };
+
+    const updatedMissions = [...campaignMissions, missionToAdd];
+    
+    syncToFirebase({ 
+      missions: updatedMissions,
+      warchest: updatedWarchest,
+      pilots: updatedPilots
+    });
+    
     setNewMission(emptyMission);
   };
 
@@ -506,8 +615,24 @@ function App() {
   };
 
   const deleteMission = (id) => {
-    const updated = campaignMissions.filter(m => m.id != id);
-    syncToFirebase({ missions: updated });
+    const missionToDelete = campaignMissions.find(m => m.id == id);
+    if (!missionToDelete) return;
+
+    // Revert rewards
+    const rewards = missionToDelete.appliedRewards || { warchest: 0, pilots: {} };
+    const updatedWarchest = campaignWarchest - (rewards.warchest || 0);
+    const updatedPilots = campaignPilots.map(p => ({
+      ...p,
+      sp: (p.sp || 0) - (rewards.pilots?.[p.id] || 0)
+    }));
+
+    const updatedMissions = campaignMissions.filter(m => m.id != id);
+    
+    syncToFirebase({ 
+      missions: updatedMissions,
+      warchest: updatedWarchest,
+      pilots: updatedPilots
+    });
   };
 
   const handleEnterCampaign = (e) => {
@@ -542,6 +667,19 @@ function App() {
           <h2>DETALLE DE CAMPAÑA</h2>
           <div className="header-campaign-actions">
             <div className="campaign-id-badge">CÓDIGO: {campaignCode.toUpperCase()}</div>
+            <div className="warchest-group">
+              <label>WARCHEST</label>
+              <input 
+                type="number" 
+                className="warchest-input"
+                value={campaignWarchest} 
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 0;
+                  setCampaignWarchest(val);
+                  syncToFirebase({ warchest: val });
+                }} 
+              />
+            </div>
             <select 
               className="difficulty-select"
               value={campaignDifficulty} 
@@ -644,9 +782,22 @@ function App() {
         <div className="campaign-column">
           <div className="column-header">
             <h3>PILOTOS</h3>
-            <button className="add-btn-mini" onClick={() => setEditingPilotId('new')}>
-              <Plus size={16} /> Añadir
-            </button>
+            <div className="add-mech-campaign">
+              <input 
+                type="text" 
+                placeholder="Nombre..." 
+                value={newPilotName}
+                onChange={(e) => setNewPilotName(e.target.value)}
+              />
+              <button 
+                className="add-btn-mini" 
+                onClick={addPilot} 
+                disabled={!newPilotName || campaignWarchest < 150}
+                title={campaignWarchest < 150 ? "Se necesitan 150 SP para reclutar" : "Coste: 150 SP"}
+              >
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
           
           <div className="pilot-list">
@@ -681,20 +832,23 @@ function App() {
 
         {editingMissionId && (
           <div className="modal-overlay" onClick={() => setEditingMissionId(null)}>
-            <div className="modal-content modal-mission-calc" onClick={e => e.stopPropagation()}>
-              <h3>{editingMissionId === 'new' ? 'Nueva Misión' : 'Editar Misión'}</h3>
+            <div className={`modal-content modal-mission-calc ${editingMissionId !== 'new' ? 'is-locked' : ''}`} onClick={e => e.stopPropagation()}>
+              <h3>{editingMissionId === 'new' ? 'Nueva Misión' : 'Misión Guardada (Lectura)'}</h3>
               
               <div className="mission-calc-layout">
                 <div className="calc-main-form">
                   <div className="form-row">
                     <input type="text" placeholder="Núm" value={editingMission?.number || ''} 
+                      disabled={editingMissionId !== 'new'}
                       onChange={e => {
                         const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                         editingMissionId === 'new' ? setNewMission({...newMission, number: val}) : updateMission(editingMissionId, {number: val});
                       }} />
                     <input type="text" placeholder="Nombre" className="flex-1" value={editingMission?.name || ''} 
+                      disabled={editingMissionId !== 'new'}
                       onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, name: e.target.value}) : updateMission(editingMissionId, {name: e.target.value})} />
                     <input type="date" value={editingMission?.date || ''} 
+                      disabled={editingMissionId !== 'new'}
                       onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, date: e.target.value}) : updateMission(editingMissionId, {date: e.target.value})} />
                   </div>
 
@@ -703,6 +857,7 @@ function App() {
                       <h4>INGRESOS (SP)</h4>
                       <label>Objetivo Principal</label>
                       <input type="text" value={editingMission?.income?.main} 
+                        disabled={editingMissionId !== 'new'}
                         onChange={e => {
                           const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                           if (editingMissionId === 'new') setNewMission({...newMission, income: {...newMission.income, main: val}});
@@ -710,6 +865,7 @@ function App() {
                         }} />
                       <label>Otros Objetivos</label>
                       <input type="text" value={editingMission?.income?.other} 
+                        disabled={editingMissionId !== 'new'}
                         onChange={e => {
                           const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                           if (editingMissionId === 'new') setNewMission({...newMission, income: {...newMission.income, other: val}});
@@ -737,6 +893,7 @@ function App() {
                         <div>
                           <label>Recon</label>
                           <input type="text" value={editingMission?.expenses?.recon} 
+                            disabled={editingMissionId !== 'new'}
                             onChange={e => {
                               const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                               if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, recon: val}});
@@ -746,6 +903,7 @@ function App() {
                         <div>
                           <label>Waypoints</label>
                           <input type="text" value={editingMission?.expenses?.waypoints} 
+                            disabled={editingMissionId !== 'new'}
                             onChange={e => {
                               const val = e.target.value.replace(/[^0-9,./+-]/g, '');
                               if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, waypoints: val}});
@@ -757,13 +915,14 @@ function App() {
                           <div className="rearming-input-row">
                             <input type="text" placeholder="#" className="units-input"
                               value={editingMission?.expenses?.rearmingUnits || ''}
+                              disabled={editingMissionId !== 'new'}
                               onChange={e => {
                                 const units = e.target.value.replace(/[^0-9,./+-]/g, '');
                                 const sp = evaluateFormula(units) * 20;
                                 if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, rearmingUnits: units, rearming: sp}});
                                 else updateMission(editingMissionId, {expenses: {...editingMission.expenses, rearmingUnits: units, rearming: sp}});
                               }} />
-                            <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.rearming || 0} />
+                            <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.rearming || 0} />
                           </div>
                         </div>
                         <div className="personal-calc-block">
@@ -773,27 +932,14 @@ function App() {
                             <div className="rearming-input-row">
                               <input type="text" placeholder="#" className="units-input"
                                 value={editingMission?.expenses?.injuredCount || ''}
+                                disabled={editingMissionId !== 'new'}
                                 onChange={e => {
                                   const count = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(count) * 100;
                                   if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, injuredCount: count, injured: sp}});
                                   else updateMission(editingMissionId, {expenses: {...editingMission.expenses, injuredCount: count, injured: sp}});
                                 }} />
-                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.injured || 0} />
-                            </div>
-                          </div>
-                          <div className="new-pilots-input-group">
-                            <label>Nuevos Pilotos</label>
-                            <div className="rearming-input-row">
-                              <input type="text" placeholder="#" className="units-input"
-                                value={editingMission?.expenses?.newPilotsCount || ''}
-                                onChange={e => {
-                                  const count = e.target.value.replace(/[^0-9,./+-]/g, '');
-                                  const sp = evaluateFormula(count) * 150;
-                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, newPilotsCount: count, newPilots: sp}});
-                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, newPilotsCount: count, newPilots: sp}});
-                                }} />
-                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.newPilots || 0} />
+                              <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.injured || 0} />
                             </div>
                           </div>
                         </div>
@@ -808,13 +954,14 @@ function App() {
                             <div className="rearming-input-row">
                               <input type="text" placeholder="Size" className="units-input"
                                 value={editingMission?.expenses?.destroyedSize || ''}
+                                disabled={editingMissionId !== 'new'}
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 100;
                                   if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, destroyedSize: size, destroyed: sp}});
                                   else updateMission(editingMissionId, {expenses: {...editingMission.expenses, destroyedSize: size, destroyed: sp}});
                                 }} />
-                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.destroyed || 0} />
+                              <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.destroyed || 0} />
                             </div>
                           </div>
 
@@ -823,13 +970,14 @@ function App() {
                             <div className="rearming-input-row">
                               <input type="text" placeholder="Size" className="units-input"
                                 value={editingMission?.expenses?.incapacitatedSize || ''}
+                                disabled={editingMissionId !== 'new'}
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 60;
                                   if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, incapacitatedSize: size, incapacitated: sp}});
                                   else updateMission(editingMissionId, {expenses: {...editingMission.expenses, incapacitatedSize: size, incapacitated: sp}});
                                 }} />
-                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.incapacitated || 0} />
+                              <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.incapacitated || 0} />
                             </div>
                           </div>
 
@@ -838,13 +986,14 @@ function App() {
                             <div className="rearming-input-row">
                               <input type="text" placeholder="Size" className="units-input"
                                 value={editingMission?.expenses?.structureSize || ''}
+                                disabled={editingMissionId !== 'new'}
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 40;
                                   if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, structureSize: size, structure: sp}});
                                   else updateMission(editingMissionId, {expenses: {...editingMission.expenses, structureSize: size, structure: sp}});
                                 }} />
-                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.structure || 0} />
+                              <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.structure || 0} />
                             </div>
                           </div>
 
@@ -853,13 +1002,14 @@ function App() {
                             <div className="rearming-input-row">
                               <input type="text" placeholder="Size" className="units-input"
                                 value={editingMission?.expenses?.armorSize || ''}
+                                disabled={editingMissionId !== 'new'}
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 20;
                                   if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, armorSize: size, armor: sp}});
                                   else updateMission(editingMissionId, {expenses: {...editingMission.expenses, armorSize: size, armor: sp}});
                                 }} />
-                              <input type="text" readOnly className="read-only-input flex-1" value={editingMission?.expenses?.armor || 0} />
+                              <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.armor || 0} />
                             </div>
                           </div>
                         </div>
@@ -877,16 +1027,93 @@ function App() {
                     <div className="checkbox-group">
                       <label>Victoria</label>
                       <input type="checkbox" checked={editingMission?.won || false} 
+                        disabled={editingMissionId !== 'new'}
                         onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, won: e.target.checked}) : updateMission(editingMissionId, {won: e.target.checked})} />
                     </div>
-                    <div className="final-balance-badge">
+                    <div className={`final-balance-badge ${calculateBalance(editingMission) < 0 ? 'negative' : ''}`}>
                       BALANCE AVENTURA: {calculateBalance(editingMission)} SP
                     </div>
                   </div>
 
+                  {editingMission?.won && calculateBalance(editingMission) > 0 && (
+                    <div className="pilots-rewards-section">
+                      <div className="pilots-rewards-header">
+                        <h4>PILOTOS</h4>
+                        <div className="max-earning-input">
+                          <label>Ganancias SP para los pilotos (Máx)</label>
+                          <input type="number" value={editingMission?.pilotMaxEarnings || 150} 
+                            disabled={editingMissionId !== 'new'}
+                            onChange={e => {
+                              const val = parseInt(e.target.value) || 0;
+                              editingMissionId === 'new' ? setNewMission({...newMission, pilotMaxEarnings: val}) : updateMission(editingMissionId, {pilotMaxEarnings: val});
+                            }} />
+                        </div>
+                      </div>
+
+                      <div className="pilots-distribution-grid">
+                        <div className="pilots-col">
+                          <h5>Pilotos Heridos / Desasignados</h5>
+                          <div className="pilots-assigned-list">
+                            {alivePilots.filter(p => editingMission?.pilotAssignments?.[p.id] === 'unassigned').map(p => {
+                              const dist = getPilotSPDistribution(editingMission, campaignPilots).distribution;
+                              return (
+                                <div key={p.id} className={`pilot-reward-card unassigned ${editingMissionId !== 'new' ? 'locked' : ''}`} onClick={() => {
+                                  if (editingMissionId !== 'new') return;
+                                  const newAssigns = {...(editingMission.pilotAssignments || {})};
+                                  delete newAssigns[p.id]; // delete means assigned (default)
+                                  editingMissionId === 'new' ? setNewMission({...newMission, pilotAssignments: newAssigns}) : updateMission(editingMissionId, {pilotAssignments: newAssigns});
+                                }}>
+                                  <span className="p-name">{p.name}</span>
+                                  <span className="p-sp">+{dist[p.id] || 0} SP</span>
+                                </div>
+                              );
+                            })}
+                            {alivePilots.filter(p => editingMission?.pilotAssignments?.[p.id] === 'unassigned').length === 0 && <p className="empty-mini">Ninguno</p>}
+                          </div>
+                        </div>
+
+                        <div className="pilots-col">
+                          <h5>Pilotos Asignados</h5>
+                          <div className="pilots-assigned-list">
+                            {alivePilots.filter(p => editingMission?.pilotAssignments?.[p.id] !== 'unassigned').map(p => {
+                              const dist = getPilotSPDistribution(editingMission, campaignPilots).distribution;
+                              const isMVP = editingMission?.mvpPilotId === p.id;
+                              return (
+                                <div key={p.id} className={`pilot-reward-card assigned ${isMVP ? 'is-mvp' : ''} ${editingMissionId !== 'new' ? 'locked' : ''}`} onClick={() => {
+                                  if (editingMissionId !== 'new') return;
+                                  const newAssigns = {...(editingMission.pilotAssignments || {}), [p.id]: 'unassigned'};
+                                  editingMissionId === 'new' ? setNewMission({...newMission, pilotAssignments: newAssigns}) : updateMission(editingMissionId, {pilotAssignments: newAssigns});
+                                }}>
+                                  <div className="p-info">
+                                    <span className="p-name">{p.name}</span>
+                                    <span className="p-sp">+{dist[p.id] || 0} SP</span>
+                                  </div>
+                                  <button className={`mvp-btn ${isMVP ? 'active' : ''}`} 
+                                    disabled={editingMissionId !== 'new'}
+                                    onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newMVP = isMVP ? null : p.id;
+                                    editingMissionId === 'new' ? setNewMission({...newMission, mvpPilotId: newMVP}) : updateMission(editingMissionId, {mvpPilotId: newMVP});
+                                  }}>
+                                    MVP
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className={`warchest-final-balance ${getPilotSPDistribution(editingMission, campaignPilots).warchest < 0 ? 'negative' : ''}`}>
+                        BALANCE PARA EL WARCHEST: {getPilotSPDistribution(editingMission, campaignPilots).warchest} SP
+                      </div>
+                    </div>
+                  )}
+
                   <textarea 
                     placeholder="Detalles de la misión..." 
                     className="mission-details-area"
+                    disabled={editingMissionId !== 'new'}
                     value={editingMission?.details || ''} 
                     onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, details: e.target.value}) : updateMission(editingMissionId, {details: e.target.value})} 
                   />
@@ -914,39 +1141,34 @@ function App() {
 
         {editingPilotId && (
           <div className="modal-overlay" onClick={() => setEditingPilotId(null)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <h3>{editingPilotId === 'new' ? 'Nuevo Piloto' : 'Editar Piloto'}</h3>
-              <div className="form-grid">
-                <input type="text" placeholder="Nombre" value={editingPilotId === 'new' ? newPilot.name : campaignPilots.find(p => p.id == editingPilotId)?.name} 
-                  onChange={e => editingPilotId === 'new' ? setNewPilot({...newPilot, name: e.target.value}) : updatePilot(editingPilotId, {name: e.target.value})} />
-                <div className="form-row">
-                  <div className="input-group">
-                    <label>SP</label>
-                    <input type="number" value={editingPilotId === 'new' ? newPilot.sp : campaignPilots.find(p => p.id == editingPilotId)?.sp} 
-                      onChange={e => {
-                        const val = parseInt(e.target.value) || 0;
-                        if (editingPilotId === 'new') setNewPilot({...newPilot, sp: val});
-                        else updatePilot(editingPilotId, {sp: val});
-                      }} />
-                  </div>
-                  <div className="checkbox-group">
-                    <label>Vivo</label>
-                    <input type="checkbox" checked={editingPilotId === 'new' ? true : campaignPilots.find(p => p.id == editingPilotId)?.alive} 
-                      onChange={e => {
-                        if (editingPilotId !== 'new') updatePilot(editingPilotId, {alive: e.target.checked});
-                      }} />
-                  </div>
+            <div className="modal-content modal-pilot" onClick={e => e.stopPropagation()}>
+              <h3>Editar Piloto</h3>
+              <div className="form-row">
+                <input type="text" placeholder="Nombre" className="flex-1" 
+                  value={campaignPilots.find(p => p.id == editingPilotId)?.name || ''} 
+                  onChange={e => updatePilot(editingPilotId, {name: e.target.value})} />
+              </div>
+              <div className="form-row">
+                <div className="pilot-sp-display">
+                  SP: <strong>{campaignPilots.find(p => p.id == editingPilotId)?.sp || 0}</strong>
+                </div>
+                <div className="checkbox-group">
+                  <label>Vivo</label>
+                  <input type="checkbox" 
+                    checked={campaignPilots.find(p => p.id == editingPilotId)?.alive ?? true} 
+                    onChange={e => updatePilot(editingPilotId, {alive: e.target.checked})} />
                 </div>
               </div>
               <div className="modal-actions">
-                {editingPilotId === 'new' ? (
-                  <button onClick={() => { addPilot(); setEditingPilotId(null); }}>Guardar Piloto</button>
-                ) : (
-                  <>
-                    <button onClick={() => setEditingPilotId(null)}>Cerrar</button>
-                    <button className="btn-danger" onClick={() => { deletePilot(editingPilotId); setEditingPilotId(null); }}>Eliminar</button>
-                  </>
+                {campaignPilots.find(p => p.id == editingPilotId)?.sp === 150 && (
+                  <button className="delete-btn" onClick={() => {
+                    if (window.confirm('¿Eliminar piloto? Esto devolverá 150 SP al Warchest.')) {
+                      deletePilot(editingPilotId);
+                      setEditingPilotId(null);
+                    }
+                  }}>Eliminar (Recibe 150SP)</button>
                 )}
+                <button className="close-btn" onClick={() => setEditingPilotId(null)}>Cerrar</button>
               </div>
             </div>
           </div>

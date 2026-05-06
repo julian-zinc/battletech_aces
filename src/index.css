@@ -1440,6 +1440,27 @@ main {
 
 .flex-1 { flex: 1; }
 
+.modal-pilot {
+  max-width: 400px !important;
+}
+
+.pilot-sp-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+
+.pilot-sp-display strong {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
 .calc-sections {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
@@ -1524,11 +1545,46 @@ main {
   border-color: var(--primary);
 }
 
+.warchest-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+}
+
+.warchest-group label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.warchest-input {
+  background: transparent !important;
+  border: none !important;
+  width: 80px;
+  text-align: right;
+  font-weight: 800;
+  color: white;
+  padding: 0.2rem !important;
+}
+
+.warchest-input:focus {
+  outline: none;
+}
+
+
 .read-only-input {
   background: rgba(255, 255, 255, 0.05) !important;
   color: var(--text-muted) !important;
   border-style: dashed !important;
   cursor: not-allowed;
+  width: 80px !important;
+  text-align: center;
 }
 
 /* Mission calculator layout */
@@ -1561,7 +1617,6 @@ main {
   flex: 1;
   min-width: 0;
 }
-
 
 .rearming-input-group,
 .personal-calc-block,
@@ -1620,7 +1675,6 @@ main {
   opacity: 0.8;
 }
 
-
 .rearming-input-row {
   display: flex;
   gap: 0.5rem;
@@ -1630,6 +1684,188 @@ main {
 .units-input {
   width: 60px !important;
   text-align: center;
+}
+
+.pilots-rewards-section {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pilots-rewards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 1rem;
+}
+
+.pilots-rewards-header h4 {
+  margin: 0;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+}
+
+.max-earning-input {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.max-earning-input label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.max-earning-input input {
+  width: 80px;
+  text-align: center;
+  padding: 0.3rem !important;
+}
+
+.pilots-distribution-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.pilots-col h5 {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  opacity: 0.8;
+}
+
+.pilots-assigned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 120px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+}
+
+.pilot-reward-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pilot-reward-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+}
+
+.pilot-reward-card.is-mvp {
+  border-color: var(--primary);
+  background: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.p-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.p-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.p-sp {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.mvp-btn {
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+  font-weight: 800;
+  transition: all 0.2s;
+}
+
+.mvp-btn.active {
+  background: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+}
+
+.warchest-final-balance {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px dashed var(--primary);
+  border-radius: 8px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: 0.05em;
+  font-size: 1.1rem;
+}
+
+.final-balance-badge.negative,
+.warchest-final-balance.negative {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+.is-locked input,
+.is-locked select,
+.is-locked textarea {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-style: dotted;
+}
+
+.pilot-reward-card.locked {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.pilot-sp-display {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pilot-sp-display strong {
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+.add-btn-mini:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.add-btn-mini:disabled:hover {
+  background: transparent;
+  border-color: var(--glass-border);
 }
 
 /* Hide numeric sliders/arrows */
@@ -1646,8 +1882,9 @@ input[type=number] {
 }
 
 @media (max-width: 800px) {
-  .calc-sections {
+  .calc-sections, .pilots-distribution-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 
