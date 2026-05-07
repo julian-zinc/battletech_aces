@@ -561,8 +561,16 @@ function App() {
 
   const addCampaignMech = () => {
     if (!newCampaignMechName) return;
-    const updated = [...campaignMechsList, { id: Date.now(), name: newCampaignMechName, pv: newCampaignMechPV }];
-    syncToFirebase({ mechs: updated });
+    const spCost = newCampaignMechPV * 40;
+    if (campaignWarchest < spCost) return;
+
+    const updatedMechs = [...campaignMechsList, { id: Date.now(), name: newCampaignMechName, pv: newCampaignMechPV }];
+    const updatedWarchest = campaignWarchest - spCost;
+
+    syncToFirebase({ 
+      mechs: updatedMechs,
+      warchest: updatedWarchest
+    });
     setNewCampaignMechName('');
     setNewCampaignMechPV(0);
   };
@@ -737,27 +745,49 @@ function App() {
         <div className="campaign-column">
           <div className="column-header">
             <h3>MECHS</h3>
-            <div className="add-mech-campaign">
-              <input 
-                type="text" 
-                list="mech-suggestions" 
-                placeholder="Nombre..." 
-                value={newCampaignMechName}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setNewCampaignMechName(val);
-                  const found = mechsDB.find(m => m.name === val);
-                  if (found) setNewCampaignMechPV(found.pv || 0);
-                }}
-              />
-              <input 
-                type="number" 
-                placeholder="PV" 
-                value={newCampaignMechPV}
-                onChange={(e) => setNewCampaignMechPV(parseInt(e.target.value) || 0)}
-              />
-              <button className="add-btn-mini" onClick={addCampaignMech} disabled={!newCampaignMechName}>
-                <Plus size={16} />
+            <div className="add-mech-grid">
+              <div className="add-mech-inputs">
+                <input 
+                  type="text" 
+                  list="mech-suggestions" 
+                  placeholder="Nombre..." 
+                  value={newCampaignMechName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewCampaignMechName(val);
+                    const found = mechsDB.find(m => m.name === val);
+                    if (found) setNewCampaignMechPV(found.pv || 0);
+                  }}
+                  className="full-width-input"
+                />
+                <div className="cost-inputs-row">
+                  <div className="input-field-inline">
+                    <label>PV</label>
+                    <input 
+                      type="number" 
+                      placeholder="PV" 
+                      value={newCampaignMechPV}
+                      onChange={(e) => setNewCampaignMechPV(parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="input-field-inline">
+                    <label>SP</label>
+                    <input 
+                      type="number" 
+                      value={newCampaignMechPV * 40} 
+                      readOnly 
+                      className="read-only-input"
+                    />
+                  </div>
+                </div>
+              </div>
+              <button 
+                className="add-btn-tall" 
+                onClick={addCampaignMech} 
+                disabled={!newCampaignMechName || campaignWarchest < (newCampaignMechPV * 40)}
+                title={campaignWarchest < (newCampaignMechPV * 40) ? "Fondos insuficientes" : `Coste: ${newCampaignMechPV * 40} SP`}
+              >
+                <Plus size={20} />
               </button>
             </div>
           </div>
@@ -782,7 +812,7 @@ function App() {
         <div className="campaign-column">
           <div className="column-header">
             <h3>PILOTOS</h3>
-            <div className="add-mech-campaign">
+            <div className="add-pilot-campaign">
               <input 
                 type="text" 
                 placeholder="Nombre..." 

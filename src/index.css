@@ -1881,6 +1881,87 @@ input[type=number] {
   appearance: textfield;
 }
 
+.add-pilot-campaign {
+  display: flex;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.add-pilot-campaign input {
+  flex: 1;
+}
+
+.add-mech-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  margin-bottom: 1.5rem;
+}
+
+.add-mech-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.full-width-input {
+  width: 100%;
+}
+
+.cost-inputs-row {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.input-field-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-field-inline label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.add-btn-tall {
+  height: 100%;
+  background: var(--primary);
+  color: #000;
+  border: none;
+  padding: 0 1.25rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+}
+
+.add-btn-tall:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.add-btn-tall:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
 @media (max-width: 800px) {
   .calc-sections, .pilots-distribution-grid {
     grid-template-columns: 1fr;
