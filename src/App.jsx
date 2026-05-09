@@ -824,7 +824,10 @@ function App() {
             {campaignMissions.length === 0 ? (
               <p className="empty-text">No hay misiones añadidas</p>
             ) : (
-              campaignMissions.sort((a, b) => a.number - b.number).map(m => (
+                [...campaignMissions].sort((a, b) => {
+                  if (a.date !== b.date) return a.date.localeCompare(b.date);
+                  return a.id - b.id;
+                }).map(m => (
                 <div key={m.id} className="mission-card" onClick={() => setEditingMissionId(m.id)}>
                   <div className="mission-main-info">
                     <span className="mission-number">#{m.number}</span>
