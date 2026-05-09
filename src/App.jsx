@@ -768,7 +768,8 @@ function App() {
       : campaignMissions.find(m => m.id == editingMissionId);
 
     return (
-      <div className="campaign-detail-view">
+      <>
+        <div className="campaign-detail-view">
         <div className="campaign-detail-header">
           <h2>DETALLE DE CAMPAÑA</h2>
           <div className="header-campaign-actions">
@@ -805,7 +806,7 @@ function App() {
           </div>
         </div>
 
-        <div className="campaign-column">
+        <div className="campaign-column mission-block">
           <div className="column-header">
             <h3>MISIONES</h3>
             <button className="add-btn-mini" onClick={() => {
@@ -840,7 +841,7 @@ function App() {
           </div>
         </div>
 
-        <div className="campaign-column">
+        <div className="campaign-column mech-block">
           <div className="column-header">
             <h3>MECHS</h3>
             <div className="add-mech-grid">
@@ -907,9 +908,8 @@ function App() {
           </div>
         </div>
 
-        <div className="campaign-column-stack">
-          <div className="campaign-column">
-            <div className="column-header">
+      <div className="campaign-column pilot-block">
+        <div className="column-header">
               <h3>PILOTOS</h3>
               <div className="add-pilot-campaign">
                 <input
@@ -960,7 +960,7 @@ function App() {
             </div>
           </div>
 
-          <div className="campaign-column">
+        <div className="campaign-column keyword-block">
             <div className="column-header">
               <h3>KEYWORDS</h3>
               <div className="add-pilot-campaign">
@@ -997,8 +997,8 @@ function App() {
                 ))
               )}
             </div>
-          </div>
         </div>
+      </div>
 
         {editingMissionId && (
           <div className="modal-overlay" onClick={() => setEditingMissionId(null)}>
@@ -1349,7 +1349,7 @@ function App() {
             </div>
           </div>
         )}
-      </div>
+      </>
     );
   };
 

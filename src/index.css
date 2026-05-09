@@ -974,13 +974,46 @@ main {
 .campaign-detail-view {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-template-areas: 
+    "header header header"
+    "missions mechs pilots"
+    "missions mechs keywords";
   gap: 1.5rem;
   padding: 2rem;
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  height: auto;
   min-height: calc(100vh - 150px);
+}
+
+.campaign-detail-header { grid-area: header; }
+.mission-block { grid-area: missions; }
+.mech-block { grid-area: mechs; }
+.pilot-block { grid-area: pilots; }
+.keyword-block { grid-area: keywords; }
+
+@media (max-width: 1024px) {
+  .campaign-detail-view {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "header header"
+      "pilots keywords"
+      "missions mechs";
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .campaign-detail-view {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "pilots"
+      "keywords"
+      "missions"
+      "mechs";
+  }
 }
 
 .campaign-column {
@@ -1357,11 +1390,9 @@ main {
 
 /* Campaign Header */
 .campaign-detail-header {
-  grid-column: 1 / -1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
   padding: 1rem 2rem;
   background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid var(--glass-border);
