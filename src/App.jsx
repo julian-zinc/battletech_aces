@@ -45,9 +45,9 @@ function App() {
   const [mechs, setMechs] = useState([]);
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState(MECH_TYPES[0]);
-  const [newOV, setNewOV] = useState(0);
+  const [newOV, setNewOV] = useState('');
   const [newMove, setNewMove] = useState('');
-  const [newTMM, setNewTMM] = useState(0);
+  const [newTMM, setNewTMM] = useState('');
   const [newDmg, setNewDmg] = useState({ S: '0', M: '0', L: '0' });
   const [newAbilities, setNewAbilities] = useState('');
   const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, combate
@@ -91,7 +91,7 @@ function App() {
 
   const [newMission, setNewMission] = useState(emptyMission);
   const [newCampaignMechName, setNewCampaignMechName] = useState('');
-  const [newCampaignMechPV, setNewCampaignMechPV] = useState(0);
+  const [newCampaignMechPV, setNewCampaignMechPV] = useState('');
   const [editingMissionId, setEditingMissionId] = useState(null);
   const [editingPilotId, setEditingPilotId] = useState(null);
 
@@ -112,7 +112,8 @@ function App() {
     if (!m || !m.income || !m.expenses) return 0;
     if (!m.won) return 0;
     const totalIncome = ((evaluateFormula(m.income.main)) + (evaluateFormula(m.income.other))) * (evaluateFormula(m.income.multiplier));
-    const totalExpenses = Object.values(m.expenses).reduce((a, b) => a + evaluateFormula(b), 0);
+    const expenseFields = ['recon', 'waypoints', 'rearming', 'injured', 'destroyed', 'incapacitated', 'structure', 'armor'];
+    const totalExpenses = expenseFields.reduce((sum, key) => sum + evaluateFormula(m.expenses[key]), 0);
     return Math.round((totalIncome - totalExpenses) * 100) / 100;
   };
 
@@ -140,8 +141,9 @@ function App() {
     // If Pool >= Sum(Caps), everyone gets Cap, remainder goes to Warchest
     const totalCap = pilotsWithCaps.reduce((a, b) => a + b.cap, 0);
     if (remainingPool >= totalCap) {
-      pilotsWithCaps.forEach(p => distribution[p.id] = p.cap);
-      return { distribution, warchest: Math.round((remainingPool - totalCap) * 100) / 100 };
+      pilotsWithCaps.forEach(p => distribution[p.id] = Math.floor(p.cap));
+      const totalDistributed = Object.values(distribution).reduce((a, b) => a + b, 0);
+      return { distribution, warchest: Math.round((totalPool - totalDistributed) * 100) / 100 };
     }
 
     // If Pool < TotalCap, distribute equally
@@ -170,12 +172,13 @@ function App() {
       activePilots = nextActivePilots;
     }
 
-    // Round values
+    // Round and floor values
     Object.keys(distribution).forEach(id => {
-      distribution[id] = Math.round(distribution[id] * 100) / 100;
+      distribution[id] = Math.floor(distribution[id]);
     });
 
-    return { distribution, warchest: 0 };
+    const totalDistributed = Object.values(distribution).reduce((a, b) => a + b, 0);
+    return { distribution, warchest: Math.round((totalPool - totalDistributed) * 100) / 100 };
   };
 
   // Sync with Firestore
@@ -305,9 +308,9 @@ function App() {
     });
     setMechs(updatedMechs);
     setNewName('');
-    setNewOV(0);
+    setNewOV('');
     setNewMove('');
-    setNewTMM(0);
+    setNewTMM('');
     setNewDmg({ S: '0', M: '0', L: '0' });
     setNewAbilities('');
   };
@@ -561,10 +564,11 @@ function App() {
 
   const addCampaignMech = () => {
     if (!newCampaignMechName) return;
-    const spCost = newCampaignMechPV * 40;
+    const pv = parseInt(newCampaignMechPV) || 0;
+    const spCost = pv * 40;
     if (campaignWarchest < spCost) return;
 
-    const updatedMechs = [...campaignMechsList, { id: Date.now(), name: newCampaignMechName, pv: newCampaignMechPV }];
+    const updatedMechs = [...campaignMechsList, { id: Date.now(), name: newCampaignMechName, pv: pv }];
     const updatedWarchest = campaignWarchest - spCost;
 
     syncToFirebase({ 
@@ -572,7 +576,7 @@ function App() {
       warchest: updatedWarchest
     });
     setNewCampaignMechName('');
-    setNewCampaignMechPV(0);
+    setNewCampaignMechPV('');
   };
 
   const removeCampaignMech = (id) => {
@@ -682,9 +686,9 @@ function App() {
                 className="warchest-input"
                 value={campaignWarchest} 
                 onChange={(e) => {
-                  const val = parseInt(e.target.value) || 0;
+                  const val = e.target.value;
                   setCampaignWarchest(val);
-                  syncToFirebase({ warchest: val });
+                  syncToFirebase({ warchest: parseInt(val) || 0 });
                 }} 
               />
             </div>
@@ -767,14 +771,14 @@ function App() {
                       type="number" 
                       placeholder="PV" 
                       value={newCampaignMechPV}
-                      onChange={(e) => setNewCampaignMechPV(parseInt(e.target.value) || 0)}
+                      onChange={(e) => setNewCampaignMechPV(e.target.value)}
                     />
                   </div>
                   <div className="input-field-inline">
                     <label>SP</label>
                     <input 
                       type="number" 
-                      value={newCampaignMechPV * 40} 
+                      value={(parseInt(newCampaignMechPV) || 0) * 40} 
                       readOnly 
                       className="read-only-input"
                     />
@@ -784,8 +788,8 @@ function App() {
               <button 
                 className="add-btn-tall" 
                 onClick={addCampaignMech} 
-                disabled={!newCampaignMechName || campaignWarchest < (newCampaignMechPV * 40)}
-                title={campaignWarchest < (newCampaignMechPV * 40) ? "Fondos insuficientes" : `Coste: ${newCampaignMechPV * 40} SP`}
+                disabled={!newCampaignMechName || campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40)}
+                title={campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40) ? "Fondos insuficientes" : `Coste: ${(parseInt(newCampaignMechPV) || 0) * 40} SP`}
               >
                 <Plus size={20} />
               </button>
@@ -1047,7 +1051,8 @@ function App() {
                       
                       <div className="calc-subtotal">
                         Total Gastos: {
-                          Object.values(editingMission?.expenses || {}).reduce((a, b) => a + evaluateFormula(b), 0)
+                          ['recon', 'waypoints', 'rearming', 'injured', 'destroyed', 'incapacitated', 'structure', 'armor']
+                            .reduce((sum, key) => sum + evaluateFormula(editingMission?.expenses?.[key]), 0)
                         } SP
                       </div>
                     </div>
@@ -1071,10 +1076,10 @@ function App() {
                         <h4>PILOTOS</h4>
                         <div className="max-earning-input">
                           <label>Ganancias SP para los pilotos (Máx)</label>
-                          <input type="number" value={editingMission?.pilotMaxEarnings || 150} 
+                          <input type="number" value={editingMission?.pilotMaxEarnings ?? 150} 
                             disabled={editingMissionId !== 'new'}
                             onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
+                              const val = e.target.value;
                               editingMissionId === 'new' ? setNewMission({...newMission, pilotMaxEarnings: val}) : updateMission(editingMissionId, {pilotMaxEarnings: val});
                             }} />
                         </div>
@@ -1556,16 +1561,16 @@ function App() {
                                   </div>
                                   <div className="inline-edit-group">
                                     <label>TMM</label>
-                                    <input type="number" value={mech.tmm || 0} onChange={(e) => updateMech(mech.id, 'tmm', parseInt(e.target.value) || 0)} style={{ width: '50px' }} />
+                                    <input type="number" value={mech.tmm} onChange={(e) => updateMech(mech.id, 'tmm', e.target.value)} style={{ width: '50px' }} />
                                     {mech.heat > 0 && mech.tmm !== calculateTMM(calculateAdjustedMove(mech.move, mech.heat)) && (
                                       <span className="base-stat-hint stat-modified" title="Adjusted TMM" style={{ padding: '2px 4px', borderRadius: '4px' }}>{calculateTMM(calculateAdjustedMove(mech.move, mech.heat))}</span>
                                     )}
                                   </div>
                                   <div className="inline-edit-group" style={{ padding: '0.15rem 0.25rem', gap: '0.1rem' }}>
                                     <label style={{ marginRight: '0.2rem' }}>DMG</label>
-                                    <input type="text" value={mech.damage?.S || '0'} onChange={(e) => updateMechDmg(mech.id, 'S', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="S" />
-                                    <input type="text" value={mech.damage?.M || '0'} onChange={(e) => updateMechDmg(mech.id, 'M', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="M" />
-                                    <input type="text" value={mech.damage?.L || '0'} onChange={(e) => updateMechDmg(mech.id, 'L', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="L" />
+                                    <input type="text" value={mech.damage?.S} onChange={(e) => updateMechDmg(mech.id, 'S', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="S" />
+                                    <input type="text" value={mech.damage?.M} onChange={(e) => updateMechDmg(mech.id, 'M', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="M" />
+                                    <input type="text" value={mech.damage?.L} onChange={(e) => updateMechDmg(mech.id, 'L', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="L" />
                                   </div>
                                   <div className="heat-control-container">
                                     <span className={`stat-badge ${mech.heat > 0 ? 'stat-modified' : ''}`}>Heat: {mech.heat || 0}/4</span>
