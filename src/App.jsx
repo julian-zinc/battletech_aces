@@ -41,6 +41,68 @@ const MechDisplayName = ({ mech }) => {
   return <>{nameToUse}</>;
 };
 
+const SearchableMechInput = ({ value, onChange, onSelect, placeholder, className }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const containerRef = React.useRef(null);
+  
+  const filtered = React.useMemo(() => {
+    if (!value) return [];
+    const searchTerms = value.toLowerCase().split(/\s+/).filter(t => t.length > 0);
+    return mechsDB.filter(m => {
+      const nameLower = m.name.toLowerCase();
+      return searchTerms.every(term => nameLower.includes(term));
+    });
+  }, [value]);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="search-container" ref={containerRef}>
+      <input
+        type="text"
+        placeholder={placeholder}
+        className={className}
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setIsOpen(true);
+        }}
+        onFocus={() => setIsOpen(true)}
+        autoComplete="off"
+      />
+      {isOpen && filtered.length > 0 && (
+        <div className="custom-dropdown">
+          {filtered.map((m, i) => (
+            <div
+              key={i}
+              className="dropdown-item"
+              onClick={() => {
+                onSelect(m.name);
+                setIsOpen(false);
+              }}
+            >
+              <strong>{m.name}</strong>
+              <div className="dropdown-meta">{m.role} - {m.pv} PV</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 function App() {
   const [mechs, setMechs] = useState([]);
   const [newName, setNewName] = useState('');
@@ -62,22 +124,25 @@ function App() {
   const [campaignMissions, setCampaignMissions] = useState([]);
   const [campaignMechsList, setCampaignMechsList] = useState([]);
   const [campaignPilots, setCampaignPilots] = useState([]);
+  const [campaignKeywords, setCampaignKeywords] = useState([]);
   const [campaignDifficulty, setCampaignDifficulty] = useState('Standard');
   const [campaignWarchest, setCampaignWarchest] = useState(0);
   const [newPilotName, setNewPilotName] = useState('');
+  const [newKeyword, setNewKeyword] = useState('');
+  const [deletionPrompt, setDeletionPrompt] = useState(null); // { type, id, name }
 
   // Campaign Form States
-  const emptyMission = { 
-    number: '', 
-    name: '', 
-    date: new Date().toISOString().split('T')[0], 
-    won: false, 
+  const emptyMission = {
+    number: '',
+    name: '',
+    date: new Date().toISOString().split('T')[0],
+    won: false,
     details: '',
     income: { main: '', other: '', multiplier: 1 },
-    expenses: { 
-      recon: '', waypoints: '', 
-      rearming: '', rearmingUnits: '', 
-      injured: '', injuredCount: '', 
+    expenses: {
+      recon: '', waypoints: '',
+      rearming: '', rearmingUnits: '',
+      injured: '', injuredCount: '',
       destroyed: '', destroyedSize: '',
       incapacitated: '', incapacitatedSize: '',
       structure: '', structureSize: '',
@@ -86,7 +151,7 @@ function App() {
     pilotMaxEarnings: 150,
     pilotAssignments: {},
     mvpPilotId: null,
-    balance: 0 
+    balance: 0
   };
 
   const [newMission, setNewMission] = useState(emptyMission);
@@ -124,7 +189,7 @@ function App() {
 
     const alivePilots = pilotsList.filter(p => p.alive);
     const maxP = evaluateFormula(m.pilotMaxEarnings) || 0;
-    
+
     // Distribution logic: equal share until individual caps
     // Caps: assigned = maxP, unassigned = maxP / 2
     let remainingPool = totalPool;
@@ -153,7 +218,7 @@ function App() {
       let share = remainingPool / activePilots.length;
       let nextActivePilots = [];
       let distributedInThisPass = 0;
-      
+
       activePilots.forEach(p => {
         let current = distribution[p.id] || 0;
         let canTake = p.cap - current;
@@ -166,7 +231,7 @@ function App() {
           }
         }
       });
-      
+
       remainingPool -= distributedInThisPass;
       if (distributedInThisPass < 0.01) break; // Avoid infinite loop with tiny floats
       activePilots = nextActivePilots;
@@ -190,6 +255,7 @@ function App() {
           setCampaignMissions(data.missions || []);
           setCampaignMechsList(data.mechs || []);
           setCampaignPilots(data.pilots || []);
+          setCampaignKeywords(data.keywords || []);
           setCampaignDifficulty(data.difficulty || 'Standard');
           setCampaignWarchest(data.warchest || 0);
         } else {
@@ -198,6 +264,7 @@ function App() {
             missions: [],
             mechs: [],
             pilots: [],
+            keywords: [],
             difficulty: 'Standard',
             warchest: 0
           });
@@ -315,8 +382,13 @@ function App() {
     setNewAbilities('');
   };
 
-  const removeMech = (id) => {
+  const removeMech = (id, name) => {
+    setDeletionPrompt({ type: 'mech-ia', id, name });
+  };
+
+  const executeRemoveMech = (id) => {
     setMechs(mechs.filter(m => m.id !== id));
+    setDeletionPrompt(null);
   };
 
   const adjustHeat = (id, delta) => {
@@ -529,15 +601,15 @@ function App() {
 
   const addPilot = () => {
     if (!newPilotName || campaignWarchest < 150) return;
-    const p = { 
-      id: Date.now(), 
-      name: newPilotName, 
-      sp: 150, 
-      alive: true 
+    const p = {
+      id: Date.now(),
+      name: newPilotName,
+      sp: 150,
+      alive: true
     };
     const updatedWarchest = campaignWarchest - 150;
     const updatedPilots = [...campaignPilots, p];
-    syncToFirebase({ 
+    syncToFirebase({
       pilots: updatedPilots,
       warchest: updatedWarchest
     });
@@ -555,11 +627,28 @@ function App() {
 
     const updatedWarchest = campaignWarchest + 150;
     const updatedPilots = campaignPilots.filter(p => p.id != id);
-    
-    syncToFirebase({ 
+
+    syncToFirebase({
       pilots: updatedPilots,
       warchest: updatedWarchest
     });
+  };
+
+  const addKeyword = () => {
+    if (!newKeyword) return;
+    const updatedKeywords = [...campaignKeywords, { id: Date.now(), text: newKeyword }];
+    syncToFirebase({ keywords: updatedKeywords });
+    setNewKeyword('');
+  };
+
+  const removeKeyword = (id, name) => {
+    setDeletionPrompt({ type: 'keyword', id, name });
+  };
+
+  const executeRemoveKeyword = (id) => {
+    const updatedKeywords = campaignKeywords.filter(k => k.id != id);
+    syncToFirebase({ keywords: updatedKeywords });
+    setDeletionPrompt(null);
   };
 
   const addCampaignMech = () => {
@@ -571,7 +660,7 @@ function App() {
     const updatedMechs = [...campaignMechsList, { id: Date.now(), name: newCampaignMechName, pv: pv }];
     const updatedWarchest = campaignWarchest - spCost;
 
-    syncToFirebase({ 
+    syncToFirebase({
       mechs: updatedMechs,
       warchest: updatedWarchest
     });
@@ -579,17 +668,22 @@ function App() {
     setNewCampaignMechPV('');
   };
 
-  const removeCampaignMech = (id) => {
+  const removeCampaignMech = (id, name) => {
+    setDeletionPrompt({ type: 'mech-campaign', id, name });
+  };
+
+  const executeRemoveCampaignMech = (id) => {
     const updated = campaignMechsList.filter(m => m.id != id);
     syncToFirebase({ mechs: updated });
+    setDeletionPrompt(null);
   };
 
   const addMission = () => {
     if (!newMission.name) return;
-    
+
     // Calculate rewards to apply
     const { distribution, warchest } = getPilotSPDistribution(newMission, campaignPilots);
-    
+
     // Apply to global state
     const updatedWarchest = campaignWarchest + warchest;
     const updatedPilots = campaignPilots.map(p => ({
@@ -597,21 +691,21 @@ function App() {
       sp: (p.sp || 0) + (distribution[p.id] || 0)
     }));
 
-    const missionToAdd = { 
-      ...newMission, 
-      id: Date.now(), 
+    const missionToAdd = {
+      ...newMission,
+      id: Date.now(),
       balance: calculateBalance(newMission),
       appliedRewards: { warchest, pilots: distribution }
     };
 
     const updatedMissions = [...campaignMissions, missionToAdd];
-    
-    syncToFirebase({ 
+
+    syncToFirebase({
       missions: updatedMissions,
       warchest: updatedWarchest,
       pilots: updatedPilots
     });
-    
+
     setNewMission(emptyMission);
   };
 
@@ -639,8 +733,8 @@ function App() {
     }));
 
     const updatedMissions = campaignMissions.filter(m => m.id != id);
-    
-    syncToFirebase({ 
+
+    syncToFirebase({
       missions: updatedMissions,
       warchest: updatedWarchest,
       pilots: updatedPilots
@@ -669,8 +763,8 @@ function App() {
   const renderCampaignDetail = () => {
     const alivePilots = campaignPilots.filter(p => p.alive);
     const memorialPilots = campaignPilots.filter(p => !p.alive);
-    const editingMission = editingMissionId === 'new' 
-      ? newMission 
+    const editingMission = editingMissionId === 'new'
+      ? newMission
       : campaignMissions.find(m => m.id == editingMissionId);
 
     return (
@@ -681,20 +775,20 @@ function App() {
             <div className="campaign-id-badge">CÓDIGO: {campaignCode.toUpperCase()}</div>
             <div className="warchest-group">
               <label>WARCHEST</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="warchest-input"
-                value={campaignWarchest} 
+                value={campaignWarchest}
                 onChange={(e) => {
                   const val = e.target.value;
                   setCampaignWarchest(val);
                   syncToFirebase({ warchest: parseInt(val) || 0 });
-                }} 
+                }}
               />
             </div>
-            <select 
+            <select
               className="difficulty-select"
-              value={campaignDifficulty} 
+              value={campaignDifficulty}
               onChange={(e) => {
                 const newDiff = e.target.value;
                 setCampaignDifficulty(newDiff);
@@ -716,20 +810,20 @@ function App() {
             <h3>MISIONES</h3>
             <button className="add-btn-mini" onClick={() => {
               setNewMission({
-                ...emptyMission, 
-                income: { ...emptyMission.income, multiplier: DIFFICULTIES[campaignDifficulty] } 
+                ...emptyMission,
+                income: { ...emptyMission.income, multiplier: DIFFICULTIES[campaignDifficulty] }
               });
               setEditingMissionId('new');
             }}>
               <Plus size={16} /> Añadir
             </button>
           </div>
-          
+
           <div className="mission-list">
             {campaignMissions.length === 0 ? (
               <p className="empty-text">No hay misiones añadidas</p>
             ) : (
-              campaignMissions.sort((a,b) => a.number - b.number).map(m => (
+              campaignMissions.sort((a, b) => a.number - b.number).map(m => (
                 <div key={m.id} className="mission-card" onClick={() => setEditingMissionId(m.id)}>
                   <div className="mission-main-info">
                     <span className="mission-number">#{m.number}</span>
@@ -751,43 +845,43 @@ function App() {
             <h3>MECHS</h3>
             <div className="add-mech-grid">
               <div className="add-mech-inputs">
-                <input 
-                  type="text" 
-                  list="mech-suggestions" 
+                <SearchableMechInput 
                   placeholder="Nombre..." 
                   value={newCampaignMechName}
-                  onChange={(e) => {
-                    const val = e.target.value;
+                  onChange={(val) => {
+                    setNewCampaignMechName(val);
+                  }}
+                  onSelect={(val) => {
                     setNewCampaignMechName(val);
                     const found = mechsDB.find(m => m.name === val);
-                    if (found) setNewCampaignMechPV(found.pv || 0);
+                    if (found) setNewCampaignMechPV(found.pv || '');
                   }}
                   className="full-width-input"
                 />
                 <div className="cost-inputs-row">
                   <div className="input-field-inline">
                     <label>PV</label>
-                    <input 
-                      type="number" 
-                      placeholder="PV" 
+                    <input
+                      type="number"
+                      placeholder="PV"
                       value={newCampaignMechPV}
                       onChange={(e) => setNewCampaignMechPV(e.target.value)}
                     />
                   </div>
                   <div className="input-field-inline">
                     <label>SP</label>
-                    <input 
-                      type="number" 
-                      value={(parseInt(newCampaignMechPV) || 0) * 40} 
-                      readOnly 
+                    <input
+                      type="number"
+                      value={(parseInt(newCampaignMechPV) || 0) * 40}
+                      readOnly
                       className="read-only-input"
                     />
                   </div>
                 </div>
               </div>
-              <button 
-                className="add-btn-tall" 
-                onClick={addCampaignMech} 
+              <button
+                className="add-btn-tall"
+                onClick={addCampaignMech}
                 disabled={!newCampaignMechName || campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40)}
                 title={campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40) ? "Fondos insuficientes" : `Coste: ${(parseInt(newCampaignMechPV) || 0) * 40} SP`}
               >
@@ -795,7 +889,7 @@ function App() {
               </button>
             </div>
           </div>
-          
+
           <div className="mech-campaign-list">
             {campaignMechsList.length === 0 ? (
               <p className="empty-text">No hay mechs registrados</p>
@@ -804,7 +898,7 @@ function App() {
                 <div key={m.id} className="mech-campaign-card">
                   <span className="mech-name">{m.name}</span>
                   <span className="mech-pv">{m.pv} PV</span>
-                  <button className="delete-btn-mini" onClick={() => removeCampaignMech(m.id)}>
+                  <button className="delete-btn-mini" onClick={() => removeCampaignMech(m.id, m.name)}>
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -813,50 +907,92 @@ function App() {
           </div>
         </div>
 
-        <div className="campaign-column">
-          <div className="column-header">
-            <h3>PILOTOS</h3>
-            <div className="add-pilot-campaign">
-              <input 
-                type="text" 
-                placeholder="Nombre..." 
-                value={newPilotName}
-                onChange={(e) => setNewPilotName(e.target.value)}
-              />
-              <button 
-                className="add-btn-mini" 
-                onClick={addPilot} 
-                disabled={!newPilotName || campaignWarchest < 150}
-                title={campaignWarchest < 150 ? "Se necesitan 150 SP para reclutar" : "Coste: 150 SP"}
-              >
-                <Plus size={16} />
-              </button>
+        <div className="campaign-column-stack">
+          <div className="campaign-column">
+            <div className="column-header">
+              <h3>PILOTOS</h3>
+              <div className="add-pilot-campaign">
+                <input
+                  type="text"
+                  placeholder="Nombre..."
+                  value={newPilotName}
+                  onChange={(e) => setNewPilotName(e.target.value)}
+                  autoComplete="off"
+                />
+                <button
+                  className="add-btn-mini"
+                  onClick={addPilot}
+                  disabled={!newPilotName || campaignWarchest < 150}
+                  title={campaignWarchest < 150 ? "Se necesitan 150 SP para reclutar" : "Coste: 150 SP"}
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <div className="pilot-list">
-            {alivePilots.length === 0 ? (
-              <p className="empty-text">No hay pilotos activos</p>
-            ) : (
-              alivePilots.map(p => (
-                <div key={p.id} className="pilot-card" onClick={() => setEditingPilotId(p.id)}>
-                  <span className="pilot-name">{p.name}</span>
-                  <span className="pilot-sp">{p.sp} SP</span>
-                </div>
-              ))
-            )}
-          </div>
 
-          <div className="memorial-section">
-            <h4>MEMORIAL</h4>
-            <div className="memorial-list">
-              {memorialPilots.length === 0 ? (
-                <p className="empty-text">El memorial está vacío</p>
+            <div className="pilot-list">
+              {alivePilots.length === 0 ? (
+                <p className="empty-text">No hay pilotos activos</p>
               ) : (
-                memorialPilots.map(p => (
-                  <div key={p.id} className="pilot-card dead" onClick={() => setEditingPilotId(p.id)}>
+                alivePilots.map(p => (
+                  <div key={p.id} className="pilot-card" onClick={() => setEditingPilotId(p.id)}>
                     <span className="pilot-name">{p.name}</span>
                     <span className="pilot-sp">{p.sp} SP</span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="memorial-section">
+              <h4>MEMORIAL</h4>
+              <div className="memorial-list">
+                {memorialPilots.length === 0 ? (
+                  <p className="empty-text">El memorial está vacío</p>
+                ) : (
+                  memorialPilots.map(p => (
+                    <div key={p.id} className="pilot-card dead" onClick={() => setEditingPilotId(p.id)}>
+                      <span className="pilot-name">{p.name}</span>
+                      <span className="pilot-sp">{p.sp} SP</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="campaign-column">
+            <div className="column-header">
+              <h3>KEYWORDS</h3>
+              <div className="add-pilot-campaign">
+                <input
+                  type="text"
+                  placeholder="Palabra..."
+                  value={newKeyword}
+                  onChange={(e) => setNewKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
+                  autoComplete="off"
+                />
+                <button
+                  className="add-btn-mini"
+                  onClick={addKeyword}
+                  disabled={!newKeyword}
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+            <div className="pilot-list" style={{ minHeight: 'auto' }}>
+              {campaignKeywords.length === 0 ? (
+                <p className="empty-text">No hay palabras clave</p>
+              ) : (
+                campaignKeywords.map(k => (
+                  <div key={k.id} className="pilot-card" style={{ cursor: 'default', marginBottom: '4px' }}>
+                    <div className="p-info">
+                      <span className="p-name">{k.text}</span>
+                    </div>
+                    <button className="remove-btn" onClick={() => removeKeyword(k.id, k.text)}>
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 ))
               )}
@@ -868,54 +1004,58 @@ function App() {
           <div className="modal-overlay" onClick={() => setEditingMissionId(null)}>
             <div className={`modal-content modal-mission-calc ${editingMissionId !== 'new' ? 'is-locked' : ''}`} onClick={e => e.stopPropagation()}>
               <h3>{editingMissionId === 'new' ? 'Nueva Misión' : 'Misión Guardada (Lectura)'}</h3>
-              
+
               <div className="mission-calc-layout">
                 <div className="calc-main-form">
                   <div className="form-row">
-                    <input type="text" placeholder="Núm" value={editingMission?.number || ''} 
+                    <input type="text" placeholder="Núm" value={editingMission?.number || ''}
                       disabled={editingMissionId !== 'new'}
+                      autoComplete="off"
                       onChange={e => {
                         const val = e.target.value.replace(/[^0-9,./+-]/g, '');
-                        editingMissionId === 'new' ? setNewMission({...newMission, number: val}) : updateMission(editingMissionId, {number: val});
+                        editingMissionId === 'new' ? setNewMission({ ...newMission, number: val }) : updateMission(editingMissionId, { number: val });
                       }} />
-                    <input type="text" placeholder="Nombre" className="flex-1" value={editingMission?.name || ''} 
+                    <input type="text" placeholder="Nombre" className="flex-1" value={editingMission?.name || ''}
                       disabled={editingMissionId !== 'new'}
-                      onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, name: e.target.value}) : updateMission(editingMissionId, {name: e.target.value})} />
-                    <input type="date" value={editingMission?.date || ''} 
+                      autoComplete="off"
+                      onChange={e => editingMissionId === 'new' ? setNewMission({ ...newMission, name: e.target.value }) : updateMission(editingMissionId, { name: e.target.value })} />
+                    <input type="date" value={editingMission?.date || ''}
                       disabled={editingMissionId !== 'new'}
-                      onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, date: e.target.value}) : updateMission(editingMissionId, {date: e.target.value})} />
+                      onChange={e => editingMissionId === 'new' ? setNewMission({ ...newMission, date: e.target.value }) : updateMission(editingMissionId, { date: e.target.value })} />
                   </div>
 
                   <div className="calc-sections">
                     <div className="calc-group income">
                       <h4>INGRESOS (SP)</h4>
                       <label>Objetivo Principal</label>
-                      <input type="text" value={editingMission?.income?.main} 
+                      <input type="text" value={editingMission?.income?.main}
                         disabled={editingMissionId !== 'new'}
+                        autoComplete="off"
                         onChange={e => {
                           const val = e.target.value.replace(/[^0-9,./+-]/g, '');
-                          if (editingMissionId === 'new') setNewMission({...newMission, income: {...newMission.income, main: val}});
-                          else updateMission(editingMissionId, {income: {...editingMission.income, main: val}});
+                          if (editingMissionId === 'new') setNewMission({ ...newMission, income: { ...newMission.income, main: val } });
+                          else updateMission(editingMissionId, { income: { ...editingMission.income, main: val } });
                         }} />
                       <label>Otros Objetivos</label>
-                      <input type="text" value={editingMission?.income?.other} 
+                      <input type="text" value={editingMission?.income?.other}
                         disabled={editingMissionId !== 'new'}
+                        autoComplete="off"
                         onChange={e => {
                           const val = e.target.value.replace(/[^0-9,./+-]/g, '');
-                          if (editingMissionId === 'new') setNewMission({...newMission, income: {...newMission.income, other: val}});
-                          else updateMission(editingMissionId, {income: {...editingMission.income, other: val}});
+                          if (editingMissionId === 'new') setNewMission({ ...newMission, income: { ...newMission.income, other: val } });
+                          else updateMission(editingMissionId, { income: { ...editingMission.income, other: val } });
                         }} />
                       <label>Multiplicador Dificultad</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         readOnly={true}
                         className="read-only-input"
                         value={editingMission?.income?.multiplier || 1} />
-                      
+
                       <div className="calc-subtotal">
                         Total Ingresos: {
-                          ((evaluateFormula(editingMission?.income?.main)) + 
-                          (evaluateFormula(editingMission?.income?.other))) * 
+                          ((evaluateFormula(editingMission?.income?.main)) +
+                            (evaluateFormula(editingMission?.income?.other))) *
                           (evaluateFormula(editingMission?.income?.multiplier))
                         } SP
                       </div>
@@ -926,22 +1066,23 @@ function App() {
                       <div className="expenses-grid">
                         <div>
                           <label>Recon</label>
-                          <input type="text" value={editingMission?.expenses?.recon} 
+                          <input type="text" value={editingMission?.expenses?.recon}
                             disabled={editingMissionId !== 'new'}
+                            autoComplete="off"
                             onChange={e => {
                               const val = e.target.value.replace(/[^0-9,./+-]/g, '');
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, recon: val}});
-                              else updateMission(editingMissionId, {expenses: {...editingMission.expenses, recon: val}});
+                              if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, recon: val } });
+                              else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, recon: val } });
                             }} />
                         </div>
                         <div>
                           <label>Waypoints</label>
-                          <input type="text" value={editingMission?.expenses?.waypoints} 
+                          <input type="text" value={editingMission?.expenses?.waypoints}
                             disabled={editingMissionId !== 'new'}
                             onChange={e => {
                               const val = e.target.value.replace(/[^0-9,./+-]/g, '');
-                              if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, waypoints: val}});
-                              else updateMission(editingMissionId, {expenses: {...editingMission.expenses, waypoints: val}});
+                              if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, waypoints: val } });
+                              else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, waypoints: val } });
                             }} />
                         </div>
                         <div className="rearming-input-group">
@@ -953,8 +1094,8 @@ function App() {
                               onChange={e => {
                                 const units = e.target.value.replace(/[^0-9,./+-]/g, '');
                                 const sp = evaluateFormula(units) * 20;
-                                if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, rearmingUnits: units, rearming: sp}});
-                                else updateMission(editingMissionId, {expenses: {...editingMission.expenses, rearmingUnits: units, rearming: sp}});
+                                if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, rearmingUnits: units, rearming: sp } });
+                                else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, rearmingUnits: units, rearming: sp } });
                               }} />
                             <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.rearming || 0} />
                           </div>
@@ -970,8 +1111,8 @@ function App() {
                                 onChange={e => {
                                   const count = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(count) * 100;
-                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, injuredCount: count, injured: sp}});
-                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, injuredCount: count, injured: sp}});
+                                  if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, injuredCount: count, injured: sp } });
+                                  else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, injuredCount: count, injured: sp } });
                                 }} />
                               <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.injured || 0} />
                             </div>
@@ -982,7 +1123,7 @@ function App() {
                             <h5>Reparaciones</h5>
                             <span className="repairs-explanation">Size total por categoría</span>
                           </div>
-                          
+
                           <div className="repair-row">
                             <label>Unidades destruidas (x100)</label>
                             <div className="rearming-input-row">
@@ -992,8 +1133,8 @@ function App() {
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 100;
-                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, destroyedSize: size, destroyed: sp}});
-                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, destroyedSize: size, destroyed: sp}});
+                                  if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, destroyedSize: size, destroyed: sp } });
+                                  else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, destroyedSize: size, destroyed: sp } });
                                 }} />
                               <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.destroyed || 0} />
                             </div>
@@ -1008,8 +1149,8 @@ function App() {
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 60;
-                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, incapacitatedSize: size, incapacitated: sp}});
-                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, incapacitatedSize: size, incapacitated: sp}});
+                                  if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, incapacitatedSize: size, incapacitated: sp } });
+                                  else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, incapacitatedSize: size, incapacitated: sp } });
                                 }} />
                               <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.incapacitated || 0} />
                             </div>
@@ -1024,8 +1165,8 @@ function App() {
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 40;
-                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, structureSize: size, structure: sp}});
-                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, structureSize: size, structure: sp}});
+                                  if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, structureSize: size, structure: sp } });
+                                  else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, structureSize: size, structure: sp } });
                                 }} />
                               <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.structure || 0} />
                             </div>
@@ -1040,15 +1181,15 @@ function App() {
                                 onChange={e => {
                                   const size = e.target.value.replace(/[^0-9,./+-]/g, '');
                                   const sp = evaluateFormula(size) * 20;
-                                  if (editingMissionId === 'new') setNewMission({...newMission, expenses: {...newMission.expenses, armorSize: size, armor: sp}});
-                                  else updateMission(editingMissionId, {expenses: {...editingMission.expenses, armorSize: size, armor: sp}});
+                                  if (editingMissionId === 'new') setNewMission({ ...newMission, expenses: { ...newMission.expenses, armorSize: size, armor: sp } });
+                                  else updateMission(editingMissionId, { expenses: { ...editingMission.expenses, armorSize: size, armor: sp } });
                                 }} />
                               <input type="text" readOnly className="read-only-input" value={editingMission?.expenses?.armor || 0} />
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="calc-subtotal">
                         Total Gastos: {
                           ['recon', 'waypoints', 'rearming', 'injured', 'destroyed', 'incapacitated', 'structure', 'armor']
@@ -1061,9 +1202,9 @@ function App() {
                   <div className="calc-summary-row">
                     <div className="checkbox-group">
                       <label>Victoria</label>
-                      <input type="checkbox" checked={editingMission?.won || false} 
+                      <input type="checkbox" checked={editingMission?.won || false}
                         disabled={editingMissionId !== 'new'}
-                        onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, won: e.target.checked}) : updateMission(editingMissionId, {won: e.target.checked})} />
+                        onChange={e => editingMissionId === 'new' ? setNewMission({ ...newMission, won: e.target.checked }) : updateMission(editingMissionId, { won: e.target.checked })} />
                     </div>
                     <div className={`final-balance-badge ${calculateBalance(editingMission) < 0 ? 'negative' : ''}`}>
                       BALANCE AVENTURA: {calculateBalance(editingMission)} SP
@@ -1076,11 +1217,11 @@ function App() {
                         <h4>PILOTOS</h4>
                         <div className="max-earning-input">
                           <label>Ganancias SP para los pilotos (Máx)</label>
-                          <input type="number" value={editingMission?.pilotMaxEarnings ?? 150} 
+                          <input type="number" value={editingMission?.pilotMaxEarnings ?? 150}
                             disabled={editingMissionId !== 'new'}
                             onChange={e => {
                               const val = e.target.value;
-                              editingMissionId === 'new' ? setNewMission({...newMission, pilotMaxEarnings: val}) : updateMission(editingMissionId, {pilotMaxEarnings: val});
+                              editingMissionId === 'new' ? setNewMission({ ...newMission, pilotMaxEarnings: val }) : updateMission(editingMissionId, { pilotMaxEarnings: val });
                             }} />
                         </div>
                       </div>
@@ -1094,9 +1235,9 @@ function App() {
                               return (
                                 <div key={p.id} className={`pilot-reward-card unassigned ${editingMissionId !== 'new' ? 'locked' : ''}`} onClick={() => {
                                   if (editingMissionId !== 'new') return;
-                                  const newAssigns = {...(editingMission.pilotAssignments || {})};
+                                  const newAssigns = { ...(editingMission.pilotAssignments || {}) };
                                   delete newAssigns[p.id]; // delete means assigned (default)
-                                  editingMissionId === 'new' ? setNewMission({...newMission, pilotAssignments: newAssigns}) : updateMission(editingMissionId, {pilotAssignments: newAssigns});
+                                  editingMissionId === 'new' ? setNewMission({ ...newMission, pilotAssignments: newAssigns }) : updateMission(editingMissionId, { pilotAssignments: newAssigns });
                                 }}>
                                   <span className="p-name">{p.name}</span>
                                   <span className="p-sp">+{dist[p.id] || 0} SP</span>
@@ -1116,20 +1257,20 @@ function App() {
                               return (
                                 <div key={p.id} className={`pilot-reward-card assigned ${isMVP ? 'is-mvp' : ''} ${editingMissionId !== 'new' ? 'locked' : ''}`} onClick={() => {
                                   if (editingMissionId !== 'new') return;
-                                  const newAssigns = {...(editingMission.pilotAssignments || {}), [p.id]: 'unassigned'};
-                                  editingMissionId === 'new' ? setNewMission({...newMission, pilotAssignments: newAssigns}) : updateMission(editingMissionId, {pilotAssignments: newAssigns});
+                                  const newAssigns = { ...(editingMission.pilotAssignments || {}), [p.id]: 'unassigned' };
+                                  editingMissionId === 'new' ? setNewMission({ ...newMission, pilotAssignments: newAssigns }) : updateMission(editingMissionId, { pilotAssignments: newAssigns });
                                 }}>
                                   <div className="p-info">
                                     <span className="p-name">{p.name}</span>
                                     <span className="p-sp">+{dist[p.id] || 0} SP</span>
                                   </div>
-                                  <button className={`mvp-btn ${isMVP ? 'active' : ''}`} 
+                                  <button className={`mvp-btn ${isMVP ? 'active' : ''}`}
                                     disabled={editingMissionId !== 'new'}
                                     onClick={(e) => {
-                                    e.stopPropagation();
-                                    const newMVP = isMVP ? null : p.id;
-                                    editingMissionId === 'new' ? setNewMission({...newMission, mvpPilotId: newMVP}) : updateMission(editingMissionId, {mvpPilotId: newMVP});
-                                  }}>
+                                      e.stopPropagation();
+                                      const newMVP = isMVP ? null : p.id;
+                                      editingMissionId === 'new' ? setNewMission({ ...newMission, mvpPilotId: newMVP }) : updateMission(editingMissionId, { mvpPilotId: newMVP });
+                                    }}>
                                     MVP
                                   </button>
                                 </div>
@@ -1145,19 +1286,19 @@ function App() {
                     </div>
                   )}
 
-                  <textarea 
-                    placeholder="Detalles de la misión..." 
+                  <textarea
+                    placeholder="Detalles de la misión..."
                     className="mission-details-area"
                     disabled={editingMissionId !== 'new'}
-                    value={editingMission?.details || ''} 
-                    onChange={e => editingMissionId === 'new' ? setNewMission({...newMission, details: e.target.value}) : updateMission(editingMissionId, {details: e.target.value})} 
+                    value={editingMission?.details || ''}
+                    onChange={e => editingMissionId === 'new' ? setNewMission({ ...newMission, details: e.target.value }) : updateMission(editingMissionId, { details: e.target.value })}
                   />
                 </div>
               </div>
 
               <div className="modal-actions">
                 {editingMissionId === 'new' ? (
-                  <button 
+                  <button
                     disabled={!newMission.number || !newMission.name}
                     onClick={() => { addMission(); setEditingMissionId(null); }}
                   >
@@ -1179,9 +1320,9 @@ function App() {
             <div className="modal-content modal-pilot" onClick={e => e.stopPropagation()}>
               <h3>Editar Piloto</h3>
               <div className="form-row">
-                <input type="text" placeholder="Nombre" className="flex-1" 
-                  value={campaignPilots.find(p => p.id == editingPilotId)?.name || ''} 
-                  onChange={e => updatePilot(editingPilotId, {name: e.target.value})} />
+                <input type="text" placeholder="Nombre" className="flex-1"
+                  value={campaignPilots.find(p => p.id == editingPilotId)?.name || ''}
+                  onChange={e => updatePilot(editingPilotId, { name: e.target.value })} />
               </div>
               <div className="form-row">
                 <div className="pilot-sp-display">
@@ -1189,9 +1330,9 @@ function App() {
                 </div>
                 <div className="checkbox-group">
                   <label>Vivo</label>
-                  <input type="checkbox" 
-                    checked={campaignPilots.find(p => p.id == editingPilotId)?.alive ?? true} 
-                    onChange={e => updatePilot(editingPilotId, {alive: e.target.checked})} />
+                  <input type="checkbox"
+                    checked={campaignPilots.find(p => p.id == editingPilotId)?.alive ?? true}
+                    onChange={e => updatePilot(editingPilotId, { alive: e.target.checked })} />
                 </div>
               </div>
               <div className="modal-actions">
@@ -1212,14 +1353,14 @@ function App() {
     );
   };
 
-    return (
-      <div className={`app-container phase-${currentPhase}`}>
-        <datalist id="mech-suggestions">
-          {mechsDB.map((m, i) => (
-            <option key={i} value={m.name} />
-          ))}
-        </datalist>
-        <header>
+  return (
+    <div className={`app-container phase-${currentPhase}`}>
+      <datalist id="mech-suggestions">
+        {mechsDB.map((m, i) => (
+          <option key={i} value={m.name} />
+        ))}
+      </datalist>
+      <header>
         <div className="header-left">
           <div className="logo" onClick={() => { setCurrentSection('aces-ia'); setCurrentPhase('mantenimiento'); }} style={{ cursor: 'pointer' }}>
             <Cpu size={24} />
@@ -1243,33 +1384,33 @@ function App() {
 
           {currentSection === 'aces-ia' && (
             <div className="phase-controls">
-            <button
-              className={`phase-btn ${currentPhase === 'mantenimiento' ? 'active' : ''}`}
-              onClick={() => setCurrentPhase('mantenimiento')}
-            >
-              Mantenimiento
-            </button>
-            <button
-              className={`phase-btn ${currentPhase === 'iniciativa' ? 'active' : ''}`}
-              onClick={startIniciativa}
-            >
-              <Zap size={18} /> Iniciativa
-            </button>
-            <button
-              className={`phase-btn ${currentPhase === 'movimiento' ? 'active' : ''}`}
-              onClick={startMovimiento}
-              disabled={mechs.length === 0}
-            >
-              <Play size={18} /> Movimiento
-            </button>
-            <button
-              className={`phase-btn ${currentPhase === 'combate' ? 'active' : ''}`}
-              onClick={startCombate}
-              disabled={mechs.length === 0}
-            >
-              <Sword size={18} /> Combate
-            </button>
-          </div>
+              <button
+                className={`phase-btn ${currentPhase === 'mantenimiento' ? 'active' : ''}`}
+                onClick={() => setCurrentPhase('mantenimiento')}
+              >
+                Mantenimiento
+              </button>
+              <button
+                className={`phase-btn ${currentPhase === 'iniciativa' ? 'active' : ''}`}
+                onClick={startIniciativa}
+              >
+                <Zap size={18} /> Iniciativa
+              </button>
+              <button
+                className={`phase-btn ${currentPhase === 'movimiento' ? 'active' : ''}`}
+                onClick={startMovimiento}
+                disabled={mechs.length === 0}
+              >
+                <Play size={18} /> Movimiento
+              </button>
+              <button
+                className={`phase-btn ${currentPhase === 'combate' ? 'active' : ''}`}
+                onClick={startCombate}
+                disabled={mechs.length === 0}
+              >
+                <Sword size={18} /> Combate
+              </button>
+            </div>
           )}
         </div>
 
@@ -1292,17 +1433,15 @@ function App() {
               <form className="add-mech-form" onSubmit={addMech}>
                 <div className="input-group">
                   <label>Nombre del Mech</label>
-                  <input
-                    type="text"
-                    list="mech-suggestions"
+                  <SearchableMechInput
                     placeholder="Buscar mech..."
                     value={newName}
-                    onChange={(e) => {
-                      const val = e.target.value;
+                    onChange={(val) => setNewName(val)}
+                    onSelect={(val) => {
                       setNewName(val);
                       const found = mechsDB.find(m => m.name === val);
                       if (found) {
-                        setNewOV(found.overheat || 0);
+                        setNewOV(found.overheat || '');
                         handleMoveChange(found.move || '');
                         setNewDmg(found.damage || { S: '0', M: '0', L: '0' });
                         setNewAbilities(found.abilities || '');
@@ -1345,6 +1484,7 @@ function App() {
                     onChange={(e) => setNewOV(e.target.value)}
                     style={{ width: '60px' }}
                     title="Overheating (OV) 0-4"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -1357,6 +1497,7 @@ function App() {
                     onChange={(e) => handleMoveChange(e.target.value)}
                     style={{ width: '60px' }}
                     title="Movimiento"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -1371,21 +1512,22 @@ function App() {
                     onChange={(e) => setNewTMM(e.target.value)}
                     style={{ width: '60px' }}
                     title="TMM"
+                    autoComplete="off"
                   />
                 </div>
 
                 <div className="input-group-row">
                   <div className="input-group">
                     <label style={{ textAlign: 'center' }}>S</label>
-                    <input type="text" value={newDmg.S} onChange={(e) => setNewDmg({ ...newDmg, S: e.target.value })} style={{ width: '45px', textAlign: 'center' }} title="Damage Corto" />
+                    <input type="text" value={newDmg.S} onChange={(e) => setNewDmg({ ...newDmg, S: e.target.value })} style={{ width: '45px', textAlign: 'center' }} title="Damage Corto" autoComplete="off" />
                   </div>
                   <div className="input-group">
                     <label style={{ textAlign: 'center' }}>M</label>
-                    <input type="text" value={newDmg.M} onChange={(e) => setNewDmg({ ...newDmg, M: e.target.value })} style={{ width: '45px', textAlign: 'center' }} title="Damage Medio" />
+                    <input type="text" value={newDmg.M} onChange={(e) => setNewDmg({ ...newDmg, M: e.target.value })} style={{ width: '45px', textAlign: 'center' }} title="Damage Medio" autoComplete="off" />
                   </div>
                   <div className="input-group">
                     <label style={{ textAlign: 'center' }}>L</label>
-                    <input type="text" value={newDmg.L} onChange={(e) => setNewDmg({ ...newDmg, L: e.target.value })} style={{ width: '45px', textAlign: 'center' }} title="Damage Largo" />
+                    <input type="text" value={newDmg.L} onChange={(e) => setNewDmg({ ...newDmg, L: e.target.value })} style={{ width: '45px', textAlign: 'center' }} title="Damage Largo" autoComplete="off" />
                   </div>
                 </div>
 
@@ -1554,23 +1696,23 @@ function App() {
                                   <span className="stat-badge">OV: {mech.ov || 0}</span>
                                   <div className="inline-edit-group">
                                     <label>Move</label>
-                                    <input type="text" value={mech.move || ''} onChange={(e) => updateMech(mech.id, 'move', e.target.value)} style={{ width: '50px' }} />
+                                    <input type="text" value={mech.move || ''} onChange={(e) => updateMech(mech.id, 'move', e.target.value)} style={{ width: '50px' }} autoComplete="off" />
                                     {mech.heat > 0 && mech.move !== calculateAdjustedMove(mech.move, mech.heat) && (
                                       <span className="base-stat-hint stat-modified" title="Adjusted Move" style={{ padding: '2px 4px', borderRadius: '4px' }}>{calculateAdjustedMove(mech.move, mech.heat)}</span>
                                     )}
                                   </div>
                                   <div className="inline-edit-group">
                                     <label>TMM</label>
-                                    <input type="number" value={mech.tmm} onChange={(e) => updateMech(mech.id, 'tmm', e.target.value)} style={{ width: '50px' }} />
+                                    <input type="number" value={mech.tmm} onChange={(e) => updateMech(mech.id, 'tmm', e.target.value)} style={{ width: '50px' }} autoComplete="off" />
                                     {mech.heat > 0 && mech.tmm !== calculateTMM(calculateAdjustedMove(mech.move, mech.heat)) && (
                                       <span className="base-stat-hint stat-modified" title="Adjusted TMM" style={{ padding: '2px 4px', borderRadius: '4px' }}>{calculateTMM(calculateAdjustedMove(mech.move, mech.heat))}</span>
                                     )}
                                   </div>
                                   <div className="inline-edit-group" style={{ padding: '0.15rem 0.25rem', gap: '0.1rem' }}>
                                     <label style={{ marginRight: '0.2rem' }}>DMG</label>
-                                    <input type="text" value={mech.damage?.S} onChange={(e) => updateMechDmg(mech.id, 'S', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="S" />
-                                    <input type="text" value={mech.damage?.M} onChange={(e) => updateMechDmg(mech.id, 'M', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="M" />
-                                    <input type="text" value={mech.damage?.L} onChange={(e) => updateMechDmg(mech.id, 'L', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="L" />
+                                    <input type="text" value={mech.damage?.S} onChange={(e) => updateMechDmg(mech.id, 'S', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="S" autoComplete="off" />
+                                    <input type="text" value={mech.damage?.M} onChange={(e) => updateMechDmg(mech.id, 'M', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="M" autoComplete="off" />
+                                    <input type="text" value={mech.damage?.L} onChange={(e) => updateMechDmg(mech.id, 'L', e.target.value)} style={{ width: '35px', textAlign: 'center', padding: '0.15rem' }} title="L" autoComplete="off" />
                                   </div>
                                   <div className="heat-control-container">
                                     <span className={`stat-badge ${mech.heat > 0 ? 'stat-modified' : ''}`}>Heat: {mech.heat || 0}/4</span>
@@ -1599,7 +1741,7 @@ function App() {
                             {currentPhase === 'mantenimiento' && (
                               <button
                                 className="remove-btn"
-                                onClick={() => removeMech(mech.id)}
+                                onClick={() => removeMech(mech.id, mech.baseName || mech.name)}
                                 title="Eliminar Mech"
                               >
                                 <Trash2 size={18} />
@@ -1641,6 +1783,7 @@ function App() {
                     placeholder="Código de campaña..."
                     value={campaignCode}
                     onChange={(e) => setCampaignCode(e.target.value)}
+                    autoComplete="off"
                   />
                   <button className="primary-btn" type="submit">
                     Entrar
@@ -1660,6 +1803,36 @@ function App() {
             <h4>{selectedAbility.ability}</h4>
             {selectedAbility.summary && <p className="ability-summary"><strong>Resumen:</strong> {selectedAbility.summary}</p>}
             {selectedAbility.rules && <p className="ability-rules"><strong>Reglas:</strong> {selectedAbility.rules}</p>}
+          </div>
+        </div>
+      )}
+      {deletionPrompt && (
+        <div className="modal-overlay" onClick={() => setDeletionPrompt(null)}>
+          <div className="modal-content modal-confirm" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center' }}>
+            <div className="confirm-icon" style={{ color: '#ef4444', marginBottom: '1rem' }}>
+              <Trash2 size={48} />
+            </div>
+            <h3>Confirmar eliminación</h3>
+            <p style={{ marginBottom: '2rem', lineHeight: '1.5' }}>
+              ¿Estás seguro de que quieres eliminar <strong>{deletionPrompt.name}</strong>?
+              {deletionPrompt.type === 'mech-campaign' && <><br /><br /><span style={{ fontSize: '0.8rem', opacity: 0.8 }}>Esta acción no reembolsará el SP gastado.</span></>}
+            </p>
+            <div className="modal-actions" style={{ justifyContent: 'center', gap: '1rem' }}>
+              <button className="secondary-btn" onClick={() => setDeletionPrompt(null)}>
+                Cancelar
+              </button>
+              <button 
+                className="primary-btn" 
+                style={{ background: '#ef4444', borderColor: '#ef4444' }}
+                onClick={() => {
+                  if (deletionPrompt.type === 'mech-ia') executeRemoveMech(deletionPrompt.id);
+                  else if (deletionPrompt.type === 'mech-campaign') executeRemoveCampaignMech(deletionPrompt.id);
+                  else if (deletionPrompt.type === 'keyword') executeRemoveKeyword(deletionPrompt.id);
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
         </div>
       )}
