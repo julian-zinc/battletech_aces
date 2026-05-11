@@ -44,7 +44,7 @@ const MechDisplayName = ({ mech }) => {
 const SearchableMechInput = ({ value, onChange, onSelect, placeholder, className }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const containerRef = React.useRef(null);
-  
+
   const filtered = React.useMemo(() => {
     if (!value) return [];
     const searchTerms = value.toLowerCase().split(/\s+/).filter(t => t.length > 0);
@@ -185,7 +185,12 @@ function App() {
   const getPilotSPDistribution = (m, pilotsList) => {
     const totalPool = calculateBalance(m);
     if (!m?.won) return { distribution: {}, warchest: 0 };
-    if (totalPool <= 0) return { distribution: {}, warchest: totalPool };
+
+    if (totalPool <= 0) {
+      const distribution = {};
+      if (m.mvpPilotId) distribution[m.mvpPilotId] = 20;
+      return { distribution, warchest: totalPool };
+    }
 
     const alivePilots = pilotsList.filter(p => p.alive);
     const maxP = evaluateFormula(m.pilotMaxEarnings) || 0;
@@ -243,7 +248,13 @@ function App() {
     });
 
     const totalDistributed = Object.values(distribution).reduce((a, b) => a + b, 0);
-    return { distribution, warchest: Math.round((totalPool - totalDistributed) * 100) / 100 };
+    const warchest = Math.round((totalPool - totalDistributed) * 100) / 100;
+
+    if (m.mvpPilotId) {
+      distribution[m.mvpPilotId] = (distribution[m.mvpPilotId] || 0) + 20;
+    }
+
+    return { distribution, warchest };
   };
 
   // Sync with Firestore
@@ -695,7 +706,8 @@ function App() {
       ...newMission,
       id: Date.now(),
       balance: calculateBalance(newMission),
-      appliedRewards: { warchest, pilots: distribution }
+      appliedRewards: { warchest, pilots: distribution },
+      pilotIds: campaignPilots.map(p => p.id)
     };
 
     const updatedMissions = [...campaignMissions, missionToAdd];
@@ -761,161 +773,165 @@ function App() {
   };
 
   const renderCampaignDetail = () => {
-    const alivePilots = campaignPilots.filter(p => p.alive);
+    const allAlivePilots = campaignPilots.filter(p => p.alive);
     const memorialPilots = campaignPilots.filter(p => !p.alive);
     const editingMission = editingMissionId === 'new'
       ? newMission
       : campaignMissions.find(m => m.id == editingMissionId);
 
+    const alivePilots = (editingMission && editingMissionId !== 'new' && editingMission.pilotIds)
+      ? allAlivePilots.filter(p => editingMission.pilotIds.some(id => String(id) === String(p.id)))
+      : allAlivePilots;
+
     return (
       <>
         <div className="campaign-detail-view">
-        <div className="campaign-detail-header">
-          <h2>DETALLE DE CAMPAÑA</h2>
-          <div className="header-campaign-actions">
-            <div className="campaign-id-badge">CÓDIGO: {campaignCode.toUpperCase()}</div>
-            <div className="warchest-group">
-              <label>WARCHEST</label>
-              <input
-                type="number"
-                className="warchest-input"
-                value={campaignWarchest}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setCampaignWarchest(val);
-                  syncToFirebase({ warchest: parseInt(val) || 0 });
-                }}
-              />
-              <span className="warchest-pv-text" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                ({Math.floor((parseInt(campaignWarchest) || 0) / 40)} PV<span style={{ fontSize: '0.7em' }}>s</span>)
-              </span>
-            </div>
-            <select
-              className="difficulty-select"
-              value={campaignDifficulty}
-              onChange={(e) => {
-                const newDiff = e.target.value;
-                setCampaignDifficulty(newDiff);
-                syncToFirebase({ difficulty: newDiff });
-              }}
-            >
-              {Object.keys(DIFFICULTIES).map(d => (
-                <option key={d} value={d}>{d} ({Math.round(DIFFICULTIES[d] * 100)}%)</option>
-              ))}
-            </select>
-            <button className="exit-btn" onClick={handleExitCampaign}>
-              Salir
-            </button>
-          </div>
-        </div>
-
-        <div className="campaign-column mission-block">
-          <div className="column-header">
-            <h3>MISIONES</h3>
-            <button className="add-btn-mini" onClick={() => {
-              setNewMission({
-                ...emptyMission,
-                income: { ...emptyMission.income, multiplier: DIFFICULTIES[campaignDifficulty] }
-              });
-              setEditingMissionId('new');
-            }}>
-              <Plus size={16} /> Añadir
-            </button>
-          </div>
-
-          <div className="mission-list">
-            {campaignMissions.length === 0 ? (
-              <p className="empty-text">No hay misiones añadidas</p>
-            ) : (
-                [...campaignMissions].sort((a, b) => {
-                  if (a.date !== b.date) return a.date.localeCompare(b.date);
-                  return a.id - b.id;
-                }).map(m => (
-                <div key={m.id} className="mission-card" onClick={() => setEditingMissionId(m.id)}>
-                  <div className="mission-main-info">
-                    <span className="mission-number">#{m.number}</span>
-                    <span className="mission-name">{m.name}</span>
-                  </div>
-                  <div className="mission-sub-info">
-                    <span>{m.date}</span>
-                    <span className={m.won ? 'victory' : 'defeat'}>{m.won ? 'Victoria' : 'Derrota'}</span>
-                    <span className="balance">{m.balance >= 0 ? '+' : ''}{m.balance} SP</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="campaign-column mech-block">
-          <div className="column-header">
-            <h3>MECHS</h3>
-            <div className="add-mech-grid">
-              <div className="add-mech-inputs">
-                <SearchableMechInput 
-                  placeholder="Nombre..." 
-                  value={newCampaignMechName}
-                  onChange={(val) => {
-                    setNewCampaignMechName(val);
+          <div className="campaign-detail-header">
+            <h2>DETALLE DE CAMPAÑA</h2>
+            <div className="header-campaign-actions">
+              <div className="campaign-id-badge">CÓDIGO: {campaignCode.toUpperCase()}</div>
+              <div className="warchest-group">
+                <label>WARCHEST</label>
+                <input
+                  type="number"
+                  className="warchest-input"
+                  value={campaignWarchest}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCampaignWarchest(val);
+                    syncToFirebase({ warchest: parseInt(val) || 0 });
                   }}
-                  onSelect={(val) => {
-                    setNewCampaignMechName(val);
-                    const found = mechsDB.find(m => m.name === val);
-                    if (found) setNewCampaignMechPV(found.pv || '');
-                  }}
-                  className="full-width-input"
                 />
-                <div className="cost-inputs-row">
-                  <div className="input-field-inline">
-                    <label>PV</label>
-                    <input
-                      type="number"
-                      placeholder="PV"
-                      value={newCampaignMechPV}
-                      onChange={(e) => setNewCampaignMechPV(e.target.value)}
-                    />
-                  </div>
-                  <div className="input-field-inline">
-                    <label>SP</label>
-                    <input
-                      type="number"
-                      value={(parseInt(newCampaignMechPV) || 0) * 40}
-                      readOnly
-                      className="read-only-input"
-                    />
-                  </div>
-                </div>
+                <span className="warchest-pv-text" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  ({Math.floor((parseInt(campaignWarchest) || 0) / 40)} PV<span style={{ fontSize: '0.7em' }}>s</span>)
+                </span>
               </div>
-              <button
-                className="add-btn-tall"
-                onClick={addCampaignMech}
-                disabled={!newCampaignMechName || campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40)}
-                title={campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40) ? "Fondos insuficientes" : `Coste: ${(parseInt(newCampaignMechPV) || 0) * 40} SP`}
+              <select
+                className="difficulty-select"
+                value={campaignDifficulty}
+                onChange={(e) => {
+                  const newDiff = e.target.value;
+                  setCampaignDifficulty(newDiff);
+                  syncToFirebase({ difficulty: newDiff });
+                }}
               >
-                <Plus size={20} />
+                {Object.keys(DIFFICULTIES).map(d => (
+                  <option key={d} value={d}>{d} ({Math.round(DIFFICULTIES[d] * 100)}%)</option>
+                ))}
+              </select>
+              <button className="exit-btn" onClick={handleExitCampaign}>
+                Salir
               </button>
             </div>
           </div>
 
-          <div className="mech-campaign-list">
-            {campaignMechsList.length === 0 ? (
-              <p className="empty-text">No hay mechs registrados</p>
-            ) : (
-              campaignMechsList.map(m => (
-                <div key={m.id} className="mech-campaign-card">
-                  <span className="mech-name">{m.name}</span>
-                  <span className="mech-pv">{m.pv} PV</span>
-                  <button className="delete-btn-mini" onClick={() => removeCampaignMech(m.id, m.name)}>
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+          <div className="campaign-column mission-block">
+            <div className="column-header">
+              <h3>MISIONES</h3>
+              <button className="add-btn-mini" onClick={() => {
+                setNewMission({
+                  ...emptyMission,
+                  income: { ...emptyMission.income, multiplier: DIFFICULTIES[campaignDifficulty] }
+                });
+                setEditingMissionId('new');
+              }}>
+                <Plus size={16} /> Añadir
+              </button>
+            </div>
 
-      <div className="campaign-column pilot-block">
-        <div className="column-header">
+            <div className="mission-list">
+              {campaignMissions.length === 0 ? (
+                <p className="empty-text">No hay misiones añadidas</p>
+              ) : (
+                [...campaignMissions].sort((a, b) => {
+                  if (a.date !== b.date) return a.date.localeCompare(b.date);
+                  return a.id - b.id;
+                }).map(m => (
+                  <div key={m.id} className="mission-card" onClick={() => setEditingMissionId(m.id)}>
+                    <div className="mission-main-info">
+                      <span className="mission-number">#{m.number}</span>
+                      <span className="mission-name">{m.name}</span>
+                    </div>
+                    <div className="mission-sub-info">
+                      <span>{m.date}</span>
+                      <span className={m.won ? 'victory' : 'defeat'}>{m.won ? 'Victoria' : 'Derrota'}</span>
+                      <span className="balance">{m.balance >= 0 ? '+' : ''}{m.balance} SP</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="campaign-column mech-block">
+            <div className="column-header">
+              <h3>MECHS</h3>
+              <div className="add-mech-grid">
+                <div className="add-mech-inputs">
+                  <SearchableMechInput
+                    placeholder="Nombre..."
+                    value={newCampaignMechName}
+                    onChange={(val) => {
+                      setNewCampaignMechName(val);
+                    }}
+                    onSelect={(val) => {
+                      setNewCampaignMechName(val);
+                      const found = mechsDB.find(m => m.name === val);
+                      if (found) setNewCampaignMechPV(found.pv || '');
+                    }}
+                    className="full-width-input"
+                  />
+                  <div className="cost-inputs-row">
+                    <div className="input-field-inline">
+                      <label>PV</label>
+                      <input
+                        type="number"
+                        placeholder="PV"
+                        value={newCampaignMechPV}
+                        onChange={(e) => setNewCampaignMechPV(e.target.value)}
+                      />
+                    </div>
+                    <div className="input-field-inline">
+                      <label>SP</label>
+                      <input
+                        type="number"
+                        value={(parseInt(newCampaignMechPV) || 0) * 40}
+                        readOnly
+                        className="read-only-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="add-btn-tall"
+                  onClick={addCampaignMech}
+                  disabled={!newCampaignMechName || campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40)}
+                  title={campaignWarchest < ((parseInt(newCampaignMechPV) || 0) * 40) ? "Fondos insuficientes" : `Coste: ${(parseInt(newCampaignMechPV) || 0) * 40} SP`}
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="mech-campaign-list">
+              {campaignMechsList.length === 0 ? (
+                <p className="empty-text">No hay mechs registrados</p>
+              ) : (
+                campaignMechsList.map(m => (
+                  <div key={m.id} className="mech-campaign-card">
+                    <span className="mech-name">{m.name}</span>
+                    <span className="mech-pv">{m.pv} PV</span>
+                    <button className="delete-btn-mini" onClick={() => removeCampaignMech(m.id, m.name)}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="campaign-column pilot-block">
+            <div className="column-header">
               <h3>PILOTOS</h3>
               <div className="add-pilot-campaign">
                 <input
@@ -966,7 +982,7 @@ function App() {
             </div>
           </div>
 
-        <div className="campaign-column keyword-block">
+          <div className="campaign-column keyword-block">
             <div className="column-header">
               <h3>KEYWORDS</h3>
               <div className="add-pilot-campaign">
@@ -1003,8 +1019,8 @@ function App() {
                 ))
               )}
             </div>
+          </div>
         </div>
-      </div>
 
         {editingMissionId && (
           <div className="modal-overlay" onClick={() => setEditingMissionId(null)}>
@@ -1217,7 +1233,7 @@ function App() {
                     </div>
                   </div>
 
-                  {editingMission?.won && calculateBalance(editingMission) > 0 && (
+                  {editingMission?.won && (
                     <div className="pilots-rewards-section">
                       <div className="pilots-rewards-header">
                         <h4>PILOTOS</h4>
@@ -1237,7 +1253,7 @@ function App() {
                           <h5>Pilotos Heridos / Desasignados</h5>
                           <div className="pilots-assigned-list">
                             {alivePilots.filter(p => editingMission?.pilotAssignments?.[p.id] === 'unassigned').map(p => {
-                              const dist = getPilotSPDistribution(editingMission, campaignPilots).distribution;
+                              const dist = getPilotSPDistribution(editingMission, alivePilots).distribution;
                               return (
                                 <div key={p.id} className={`pilot-reward-card unassigned ${editingMissionId !== 'new' ? 'locked' : ''}`} onClick={() => {
                                   if (editingMissionId !== 'new') return;
@@ -1258,7 +1274,7 @@ function App() {
                           <h5>Pilotos Asignados</h5>
                           <div className="pilots-assigned-list">
                             {alivePilots.filter(p => editingMission?.pilotAssignments?.[p.id] !== 'unassigned').map(p => {
-                              const dist = getPilotSPDistribution(editingMission, campaignPilots).distribution;
+                              const dist = getPilotSPDistribution(editingMission, alivePilots).distribution;
                               const isMVP = editingMission?.mvpPilotId === p.id;
                               return (
                                 <div key={p.id} className={`pilot-reward-card assigned ${isMVP ? 'is-mvp' : ''} ${editingMissionId !== 'new' ? 'locked' : ''}`} onClick={() => {
@@ -1286,8 +1302,8 @@ function App() {
                         </div>
                       </div>
 
-                      <div className={`warchest-final-balance ${getPilotSPDistribution(editingMission, campaignPilots).warchest < 0 ? 'negative' : ''}`}>
-                        BALANCE PARA EL WARCHEST: {getPilotSPDistribution(editingMission, campaignPilots).warchest} SP
+                      <div className={`warchest-final-balance ${getPilotSPDistribution(editingMission, alivePilots).warchest < 0 ? 'negative' : ''}`}>
+                        BALANCE PARA EL WARCHEST: {getPilotSPDistribution(editingMission, alivePilots).warchest} SP
                       </div>
                     </div>
                   )}
@@ -1827,8 +1843,8 @@ function App() {
               <button className="secondary-btn" onClick={() => setDeletionPrompt(null)}>
                 Cancelar
               </button>
-              <button 
-                className="primary-btn" 
+              <button
+                className="primary-btn"
                 style={{ background: '#ef4444', borderColor: '#ef4444' }}
                 onClick={() => {
                   if (deletionPrompt.type === 'mech-ia') executeRemoveMech(deletionPrompt.id);
