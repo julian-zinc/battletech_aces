@@ -786,6 +786,9 @@ function App() {
                   syncToFirebase({ warchest: parseInt(val) || 0 });
                 }}
               />
+              <span className="warchest-pv-text" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                ({Math.floor((parseInt(campaignWarchest) || 0) / 40)} PV<span style={{ fontSize: '0.7em' }}>s</span>)
+              </span>
             </div>
             <select
               className="difficulty-select"
