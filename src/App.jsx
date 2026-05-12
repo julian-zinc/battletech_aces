@@ -209,12 +209,6 @@ function App() {
     // Sort caps (though here we only have 2 cap values)
     // Actually, simpler logic:
     // If Pool >= Sum(Caps), everyone gets Cap, remainder goes to Warchest
-    const totalCap = pilotsWithCaps.reduce((a, b) => a + b.cap, 0);
-    if (remainingPool >= totalCap) {
-      pilotsWithCaps.forEach(p => distribution[p.id] = Math.floor(p.cap));
-      const totalDistributed = Object.values(distribution).reduce((a, b) => a + b, 0);
-      return { distribution, warchest: Math.round((totalPool - totalDistributed) * 100) / 100 };
-    }
 
     // If Pool < TotalCap, distribute equally
     // While there is pool and pilots not at cap
