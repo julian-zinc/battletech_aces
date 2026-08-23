@@ -104,7 +104,15 @@ const SearchableMechInput = ({ value, onChange, onSelect, placeholder, className
 };
 
 function App() {
-  const [mechs, setMechs] = useState([]);
+  const [mechs, setMechs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aces_mechs');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Error loading aces_mechs from localStorage:", e);
+      return [];
+    }
+  });
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState(MECH_TYPES[0]);
   const [newOV, setNewOV] = useState('');
@@ -112,10 +120,19 @@ function App() {
   const [newTMM, setNewTMM] = useState('');
   const [newDmg, setNewDmg] = useState({ S: '0', M: '0', L: '0' });
   const [newAbilities, setNewAbilities] = useState('');
-  const [currentPhase, setCurrentPhase] = useState('mantenimiento'); // mantenimiento, iniciativa, movimiento, combate
-  const [activeMechIndex, setActiveMechIndex] = useState(0);
-  const [selectedCommander, setSelectedCommander] = useState("Mechwarrior Clan Jade Falcon");
-  const [commanderCard, setCommanderCard] = useState("A");
+  const [currentPhase, setCurrentPhase] = useState(() => {
+    return localStorage.getItem('aces_currentPhase') || 'mantenimiento';
+  });
+  const [activeMechIndex, setActiveMechIndex] = useState(() => {
+    const saved = localStorage.getItem('aces_activeMechIndex');
+    return saved !== null ? parseInt(saved, 10) : 0;
+  });
+  const [selectedCommander, setSelectedCommander] = useState(() => {
+    return localStorage.getItem('aces_selectedCommander') || "Mechwarrior Clan Jade Falcon";
+  });
+  const [commanderCard, setCommanderCard] = useState(() => {
+    return localStorage.getItem('aces_commanderCard') || "A";
+  });
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [selectedAbility, setSelectedAbility] = useState(null);
   const [currentSection, setCurrentSection] = useState(localStorage.getItem('isCampaignActive') === 'true' ? 'campana' : 'aces-ia');
@@ -130,6 +147,27 @@ function App() {
   const [newPilotName, setNewPilotName] = useState('');
   const [newKeyword, setNewKeyword] = useState('');
   const [deletionPrompt, setDeletionPrompt] = useState(null); // { type, id, name }
+
+  // Sync ACES IA state to localStorage
+  useEffect(() => {
+    localStorage.setItem('aces_mechs', JSON.stringify(mechs));
+  }, [mechs]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_currentPhase', currentPhase);
+  }, [currentPhase]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_activeMechIndex', activeMechIndex.toString());
+  }, [activeMechIndex]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_selectedCommander', selectedCommander);
+  }, [selectedCommander]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_commanderCard', commanderCard);
+  }, [commanderCard]);
 
   // Campaign Form States
   const emptyMission = {
@@ -393,6 +431,17 @@ function App() {
 
   const executeRemoveMech = (id) => {
     setMechs(mechs.filter(m => m.id !== id));
+    setDeletionPrompt(null);
+  };
+
+  const removeAllMechs = () => {
+    setDeletionPrompt({ type: 'all-mechs-ia', name: 'todos los mechs añadidos' });
+  };
+
+  const executeRemoveAllMechs = () => {
+    setMechs([]);
+    setActiveMechIndex(0);
+    setCurrentPhase('mantenimiento');
     setDeletionPrompt(null);
   };
 
@@ -1551,6 +1600,12 @@ function App() {
                   <Plus size={18} />
                   Añadir
                 </button>
+                {mechs.length > 0 && (
+                  <button type="button" className="delete-all-btn" onClick={removeAllMechs} title="Eliminar todos los mechs">
+                    <Trash2 size={18} />
+                    Eliminar todos
+                  </button>
+                )}
               </form>
             </>)}
         </div>
@@ -1842,6 +1897,7 @@ function App() {
                 style={{ background: '#ef4444', borderColor: '#ef4444' }}
                 onClick={() => {
                   if (deletionPrompt.type === 'mech-ia') executeRemoveMech(deletionPrompt.id);
+                  else if (deletionPrompt.type === 'all-mechs-ia') executeRemoveAllMechs();
                   else if (deletionPrompt.type === 'mech-campaign') executeRemoveCampaignMech(deletionPrompt.id);
                   else if (deletionPrompt.type === 'keyword') executeRemoveKeyword(deletionPrompt.id);
                 }}
