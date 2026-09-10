@@ -399,10 +399,21 @@ main {
   align-items: center;
 }
 
+.copy-btn,
 .remove-btn {
   background: transparent;
   color: var(--text-muted);
   padding: 4px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.copy-btn:hover {
+  color: var(--primary);
 }
 
 .remove-btn:hover {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Cpu, RefreshCw, ChevronUp, ChevronDown, Play, Sword, Zap, User } from 'lucide-react';
+import { Plus, Trash2, Cpu, RefreshCw, ChevronUp, ChevronDown, Play, Sword, Zap, User, Copy } from 'lucide-react';
 import { db } from './firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import cardManifest from './cardManifest.json';
@@ -113,13 +113,20 @@ function App() {
       return [];
     }
   });
-  const [newName, setNewName] = useState('');
-  const [newType, setNewType] = useState(MECH_TYPES[0]);
-  const [newOV, setNewOV] = useState('');
-  const [newMove, setNewMove] = useState('');
-  const [newTMM, setNewTMM] = useState('');
-  const [newDmg, setNewDmg] = useState({ S: '0', M: '0', L: '0' });
-  const [newAbilities, setNewAbilities] = useState('');
+  const [newName, setNewName] = useState(() => localStorage.getItem('aces_newName') || '');
+  const [newType, setNewType] = useState(() => localStorage.getItem('aces_newType') || MECH_TYPES[0]);
+  const [newOV, setNewOV] = useState(() => localStorage.getItem('aces_newOV') || '');
+  const [newMove, setNewMove] = useState(() => localStorage.getItem('aces_newMove') || '');
+  const [newTMM, setNewTMM] = useState(() => localStorage.getItem('aces_newTMM') || '');
+  const [newDmg, setNewDmg] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aces_newDmg');
+      return saved ? JSON.parse(saved) : { S: '0', M: '0', L: '0' };
+    } catch (e) {
+      return { S: '0', M: '0', L: '0' };
+    }
+  });
+  const [newAbilities, setNewAbilities] = useState(() => localStorage.getItem('aces_newAbilities') || '');
   const [currentPhase, setCurrentPhase] = useState(() => {
     return localStorage.getItem('aces_currentPhase') || 'mantenimiento';
   });
@@ -135,17 +142,52 @@ function App() {
   });
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [selectedAbility, setSelectedAbility] = useState(null);
-  const [currentSection, setCurrentSection] = useState(localStorage.getItem('isCampaignActive') === 'true' ? 'campana' : 'aces-ia');
+  const [currentSection, setCurrentSection] = useState(() => {
+    return localStorage.getItem('aces_currentSection') || (localStorage.getItem('isCampaignActive') === 'true' ? 'campana' : 'aces-ia');
+  });
   const [campaignCode, setCampaignCode] = useState(localStorage.getItem('lastCampaignCode') || '');
   const [isCampaignActive, setIsCampaignActive] = useState(localStorage.getItem('isCampaignActive') === 'true');
-  const [campaignMissions, setCampaignMissions] = useState([]);
-  const [campaignMechsList, setCampaignMechsList] = useState([]);
-  const [campaignPilots, setCampaignPilots] = useState([]);
-  const [campaignKeywords, setCampaignKeywords] = useState([]);
-  const [campaignDifficulty, setCampaignDifficulty] = useState('Standard');
-  const [campaignWarchest, setCampaignWarchest] = useState(0);
-  const [newPilotName, setNewPilotName] = useState('');
-  const [newKeyword, setNewKeyword] = useState('');
+
+  // Helper for loading campaign offline cache
+  const getCachedCampaign = (code) => {
+    if (!code) return null;
+    try {
+      const saved = localStorage.getItem(`aces_campaignData_${code.toLowerCase()}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const initialCampaignCode = localStorage.getItem('lastCampaignCode') || '';
+  const initialCachedCampaign = getCachedCampaign(initialCampaignCode);
+
+  const [campaignMissions, setCampaignMissions] = useState(initialCachedCampaign?.missions || []);
+  const [campaignMechsList, setCampaignMechsList] = useState(initialCachedCampaign?.mechs || []);
+  const [campaignPilots, setCampaignPilots] = useState(initialCachedCampaign?.pilots || []);
+  const [campaignKeywords, setCampaignKeywords] = useState(initialCachedCampaign?.keywords || []);
+  const [campaignDifficulty, setCampaignDifficulty] = useState(initialCachedCampaign?.difficulty || 'Standard');
+  const [campaignWarchest, setCampaignWarchest] = useState(initialCachedCampaign?.warchest || 0);
+
+  const [newPilotName, setNewPilotName] = useState(() => localStorage.getItem('aces_newPilotName') || '');
+  const [newKeyword, setNewKeyword] = useState(() => localStorage.getItem('aces_newKeyword') || '');
+  const [newCampaignMechName, setNewCampaignMechName] = useState(() => localStorage.getItem('aces_newCampaignMechName') || '');
+  const [newCampaignMechPV, setNewCampaignMechPV] = useState(() => localStorage.getItem('aces_newCampaignMechPV') || '');
+
+  const [editingMissionId, setEditingMissionId] = useState(() => {
+    const saved = localStorage.getItem('aces_editingMissionId');
+    if (!saved) return null;
+    if (saved === 'new') return 'new';
+    const num = Number(saved);
+    return isNaN(num) ? saved : num;
+  });
+  const [editingPilotId, setEditingPilotId] = useState(() => {
+    const saved = localStorage.getItem('aces_editingPilotId');
+    if (!saved) return null;
+    const num = Number(saved);
+    return isNaN(num) ? saved : num;
+  });
+
   const [deletionPrompt, setDeletionPrompt] = useState(null); // { type, id, name }
 
   // Sync ACES IA state to localStorage
@@ -168,6 +210,70 @@ function App() {
   useEffect(() => {
     localStorage.setItem('aces_commanderCard', commanderCard);
   }, [commanderCard]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_currentSection', currentSection);
+  }, [currentSection]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newName', newName);
+  }, [newName]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newType', newType);
+  }, [newType]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newOV', newOV);
+  }, [newOV]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newMove', newMove);
+  }, [newMove]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newTMM', newTMM);
+  }, [newTMM]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newDmg', JSON.stringify(newDmg));
+  }, [newDmg]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newAbilities', newAbilities);
+  }, [newAbilities]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newCampaignMechName', newCampaignMechName);
+  }, [newCampaignMechName]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newCampaignMechPV', newCampaignMechPV);
+  }, [newCampaignMechPV]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newPilotName', newPilotName);
+  }, [newPilotName]);
+
+  useEffect(() => {
+    localStorage.setItem('aces_newKeyword', newKeyword);
+  }, [newKeyword]);
+
+  useEffect(() => {
+    if (editingMissionId !== null) {
+      localStorage.setItem('aces_editingMissionId', String(editingMissionId));
+    } else {
+      localStorage.removeItem('aces_editingMissionId');
+    }
+  }, [editingMissionId]);
+
+  useEffect(() => {
+    if (editingPilotId !== null) {
+      localStorage.setItem('aces_editingPilotId', String(editingPilotId));
+    } else {
+      localStorage.removeItem('aces_editingPilotId');
+    }
+  }, [editingPilotId]);
 
   // Campaign Form States
   const emptyMission = {
@@ -192,11 +298,18 @@ function App() {
     balance: 0
   };
 
-  const [newMission, setNewMission] = useState(emptyMission);
-  const [newCampaignMechName, setNewCampaignMechName] = useState('');
-  const [newCampaignMechPV, setNewCampaignMechPV] = useState('');
-  const [editingMissionId, setEditingMissionId] = useState(null);
-  const [editingPilotId, setEditingPilotId] = useState(null);
+  const [newMission, setNewMission] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aces_newMission');
+      return saved ? JSON.parse(saved) : emptyMission;
+    } catch (e) {
+      return emptyMission;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('aces_newMission', JSON.stringify(newMission));
+  }, [newMission]);
 
   const evaluateFormula = (val) => {
     if (val === undefined || val === null || val === '') return 0;
@@ -289,7 +402,7 @@ function App() {
     return { distribution, warchest };
   };
 
-  // Sync with Firestore
+  // Sync with Firestore & cache to localStorage
   useEffect(() => {
     if (isCampaignActive && campaignCode) {
       const unsub = onSnapshot(doc(db, "campaigns", campaignCode.toLowerCase()), (docSnap) => {
@@ -301,6 +414,11 @@ function App() {
           setCampaignKeywords(data.keywords || []);
           setCampaignDifficulty(data.difficulty || 'Standard');
           setCampaignWarchest(data.warchest || 0);
+          try {
+            localStorage.setItem(`aces_campaignData_${campaignCode.toLowerCase()}`, JSON.stringify(data));
+          } catch (e) {
+            console.error("Error updating campaign cache in localStorage:", e);
+          }
         } else {
           // Initialize empty campaign if it doesn't exist
           setDoc(doc(db, "campaigns", campaignCode.toLowerCase()), {
@@ -423,6 +541,41 @@ function App() {
     setNewTMM('');
     setNewDmg({ S: '0', M: '0', L: '0' });
     setNewAbilities('');
+    localStorage.removeItem('aces_newName');
+    localStorage.removeItem('aces_newOV');
+    localStorage.removeItem('aces_newMove');
+    localStorage.removeItem('aces_newTMM');
+    localStorage.removeItem('aces_newDmg');
+    localStorage.removeItem('aces_newAbilities');
+  };
+
+  const copyMech = (mechToCopy) => {
+    let updatedMechs = [...mechs];
+    const cleanName = mechToCopy.baseName || mechToCopy.name;
+    const existing = updatedMechs.filter(m => (m.baseName || m.name) === cleanName);
+
+    let variantIndex = 0;
+    if (existing.length > 0) {
+      const maxVariant = Math.max(...existing.map(m => m.variantIndex || 0), 0);
+      if (maxVariant === 0) {
+        const firstIndex = updatedMechs.findIndex(m => (m.baseName || m.name) === cleanName);
+        if (firstIndex !== -1) {
+          updatedMechs[firstIndex] = { ...updatedMechs[firstIndex], variantIndex: 1, baseName: cleanName };
+        }
+        variantIndex = 2;
+      } else {
+        variantIndex = maxVariant + 1;
+      }
+    }
+
+    updatedMechs.push({
+      ...mechToCopy,
+      id: Date.now() + Math.random(),
+      baseName: cleanName,
+      variantIndex,
+      damage: { ...mechToCopy.damage }
+    });
+    setMechs(updatedMechs);
   };
 
   const removeMech = (id, name) => {
@@ -668,6 +821,7 @@ function App() {
       warchest: updatedWarchest
     });
     setNewPilotName('');
+    localStorage.removeItem('aces_newPilotName');
   };
 
   const updatePilot = (id, updates) => {
@@ -693,6 +847,7 @@ function App() {
     const updatedKeywords = [...campaignKeywords, { id: Date.now(), text: newKeyword }];
     syncToFirebase({ keywords: updatedKeywords });
     setNewKeyword('');
+    localStorage.removeItem('aces_newKeyword');
   };
 
   const removeKeyword = (id, name) => {
@@ -720,6 +875,8 @@ function App() {
     });
     setNewCampaignMechName('');
     setNewCampaignMechPV('');
+    localStorage.removeItem('aces_newCampaignMechName');
+    localStorage.removeItem('aces_newCampaignMechPV');
   };
 
   const removeCampaignMech = (id, name) => {
@@ -762,6 +919,7 @@ function App() {
     });
 
     setNewMission(emptyMission);
+    localStorage.removeItem('aces_newMission');
   };
 
   const updateMission = (id, updates) => {
@@ -811,8 +969,13 @@ function App() {
     setCampaignMissions([]);
     setCampaignMechsList([]);
     setCampaignPilots([]);
+    setEditingMissionId(null);
+    setEditingPilotId(null);
     localStorage.removeItem('lastCampaignCode');
     localStorage.removeItem('isCampaignActive');
+    localStorage.removeItem('aces_newMission');
+    localStorage.removeItem('aces_editingMissionId');
+    localStorage.removeItem('aces_editingPilotId');
   };
 
   const renderCampaignDetail = () => {
@@ -1810,13 +1973,22 @@ function App() {
                               </div>
                             )}
                             {currentPhase === 'mantenimiento' && (
-                              <button
-                                className="remove-btn"
-                                onClick={() => removeMech(mech.id, mech.baseName || mech.name)}
-                                title="Eliminar Mech"
-                              >
-                                <Trash2 size={18} />
-                              </button>
+                              <>
+                                <button
+                                  className="copy-btn"
+                                  onClick={() => copyMech(mech)}
+                                  title="Copiar Mech"
+                                >
+                                  <Copy size={18} />
+                                </button>
+                                <button
+                                  className="remove-btn"
+                                  onClick={() => removeMech(mech.id, mech.baseName || mech.name)}
+                                  title="Eliminar Mech"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
